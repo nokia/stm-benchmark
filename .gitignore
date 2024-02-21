@@ -1,0 +1,27 @@
+# © 2023-2024 Nokia
+# Licensed under the Apache License 2.0
+# SPDX-License-Identifier: Apache-2.0
+
+*.class
+*.log
+
+# sbt specific
+.cache
+.history
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Metals/VSCode specific
+.bloop/
+.bsp/
+.metals/
+.vscode/
+metals.sbt
+
+# JMH
+*.jfr
