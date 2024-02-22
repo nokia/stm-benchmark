@@ -36,4 +36,6 @@ final class CatsStmSolverSpec extends JvmSolverSpec {
 
   override protected def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
     IO { assert(cond) }
+
+  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
 }

@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package zstm
 
+import scala.concurrent.duration._
+
 import zio.{ Task, ZIO }
 import zio.interop.catz.asyncInstance
 
@@ -18,6 +20,9 @@ import munit.ZSuite
 import common.{ Board, Solver }
 
 final class ZstmSolverSpec extends ZSuite {
+
+  final override def munitTimeout =
+    120.minutes
 
   private def createSolver: Task[Solver[Task]] = {
     ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
@@ -70,16 +75,5 @@ final class ZstmSolverSpec extends ZSuite {
     }
   }
 
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
   testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparseshort.txt
-  // testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparselong.txt
-  // testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
-  // testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
-  // TODO: this times out
 }

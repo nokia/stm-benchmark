@@ -25,18 +25,17 @@ abstract class JvmSolverSpec extends AbstractSolverSpec {
     }
   }
 
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
+  // Possible test resources:
 
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
-  // testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
-  // TODO: this times out (approx. 8-9 mins with sequential IO)
+  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
+  // testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparseshort.txt
   // testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
-  // TODO: this is LONG (approx. 4 mins with sequential IO)
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparselong.txt
   // testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
-  // TODO: this is LONG (approx. 0.5 mins with sequential IO)
+
+  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
+  // testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
 }

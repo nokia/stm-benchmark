@@ -36,4 +36,6 @@ final class RxnSolverSpec extends JvmSolverSpec {
       RxnSolver[IO](parLimit = numCpu, log = false)
     }
   }
+
+  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
 }
