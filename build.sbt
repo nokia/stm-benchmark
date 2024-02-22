@@ -83,6 +83,7 @@ lazy val zstm = project.in(file("zstm"))
   .settings(libraryDependencies ++= Seq(
     dependencies.zioStm.value,
     dependencies.zioCats.value,
+    dependencies.zioMunit.value % TestInternal,
   ))
 
 lazy val choam = project.in(file("choam"))
@@ -229,6 +230,7 @@ lazy val dependencies = new {
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.0")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
+  val zioMunit = Def.setting("com.github.poslegm" %% "munit-zio" % "0.2.0")
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
 }
 
