@@ -38,4 +38,7 @@ final class CatsStmSolverSpec extends JvmSolverSpec {
     IO { assert(cond) }
 
   testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
+  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  // TODO: sparselong.txt (too long)
+  // TODO: mainboard.txt (?)
 }
