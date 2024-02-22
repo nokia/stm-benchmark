@@ -96,6 +96,7 @@ lazy val choam = project.in(file("choam"))
   ))
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
+  Test / fork := true,
 )
 
 lazy val commonSettingsJs = Seq[Setting[_]](
