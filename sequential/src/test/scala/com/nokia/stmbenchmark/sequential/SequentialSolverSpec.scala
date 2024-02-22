@@ -34,5 +34,8 @@ final class SequentialSolverSpec extends JvmSolverSpec {
   protected override def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
     IO { assert(cond) }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
+  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
+  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
+  testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
 }

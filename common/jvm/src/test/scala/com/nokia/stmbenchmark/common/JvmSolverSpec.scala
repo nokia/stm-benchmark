@@ -13,12 +13,13 @@ import munit.Location
 
 abstract class JvmSolverSpec extends AbstractSolverSpec {
 
-  protected def testFromResource(testName: String, resourceName: String)(implicit loc: Location): Unit = {
+  protected def testFromResource(testName: String, resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
     test(testName) {
       createSolver.flatMap { solver =>
         Board.fromResource[Tsk](resourceName).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
-            printAndCheckSolution(board, solution)
+            if (printSolution) printAndCheckSolution(board, solution)
+            else checkSolution(board, solution)
           }
         }
       }

@@ -36,8 +36,11 @@ abstract class AbstractSolverSpec extends CatsEffectSuite {
   final override def munitIOTimeout =
     120.minutes
 
+  protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Tsk[Unit] =
+    assertTsk(board.isSolutionValid(solution.value))
+
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Tsk[Unit] =
-    debug(board.debugSolution(solution.value)) *> assertTsk(board.isSolutionValid(solution.value))
+    debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
   test("minimal") {

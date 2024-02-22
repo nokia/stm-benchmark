@@ -37,5 +37,7 @@ final class RxnSolverSpec extends JvmSolverSpec {
     }
   }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
+  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
+  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
 }

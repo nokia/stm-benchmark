@@ -45,7 +45,7 @@ object RefMatrix {
     require(h >= 0)
     require(w >= 0)
     val len = h * w
-    Ref.array(len, initial).map { refArr =>
+    Ref.lazyArray(len, initial).map { refArr =>
       new RefMatrix[A] {
 
         final override val height: Int =

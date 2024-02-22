@@ -36,15 +36,19 @@ final class ZstmSolverSpec extends ZSuite {
     }
   }
 
-  private def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
-    debug(board.debugSolution(solution.value)) *> ZIO.attempt { assert(board.isSolutionValid(solution.value)) }
+  protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
+    ZIO.attempt { assert(board.isSolutionValid(solution.value)) }
 
-  private def testFromResource(testName: String, resourceName: String)(implicit loc: Location): Unit = {
+  protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
+    debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
+
+  private def testFromResource(testName: String, resourceName: String, printSolution: Boolean)(implicit loc: Location): Unit = {
     testZ(testName) {
       createSolver.flatMap { solver =>
         Board.fromResource[Task](resourceName).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
-            printAndCheckSolution(board, solution)
+            if (printSolution) printAndCheckSolution(board, solution)
+            else checkSolution(board, solution)
           }
         }
       }
@@ -75,5 +79,5 @@ final class ZstmSolverSpec extends ZSuite {
     }
   }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
+  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
 }
