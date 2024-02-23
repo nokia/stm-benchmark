@@ -123,6 +123,14 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class ZstmState extends AbstractState {
 
+    private[this] val runtime = {
+      zio.Runtime(
+        zio.ZEnvironment.empty,
+        zio.FiberRefs.empty,
+        zio.RuntimeFlags.disable(zio.RuntimeFlags.default)(zio.RuntimeFlag.FiberRoots),
+      )
+    }
+
     val solver: Solver[Task] = {
       val numCpu = Runtime.getRuntime().availableProcessors()
       unsafeRunSync(ZstmSolver(parLimit = numCpu, log = false))
@@ -130,7 +138,7 @@ object Benchmarks {
 
     final def unsafeRunSync[A](tsk: Task[A]): A = {
       zio.Unsafe.unsafe { implicit u =>
-        zio.Runtime.default.unsafe.run(tsk).getOrThrow()
+        this.runtime.unsafe.run(tsk).getOrThrow()
       }
     }
   }
