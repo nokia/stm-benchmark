@@ -10,7 +10,6 @@ package benchmarks
 import java.util.concurrent.TimeUnit.HOURS
 
 import cats.effect.IO
-import cats.effect.unsafe.IORuntime.global
 
 import zio.Task
 
@@ -74,15 +73,28 @@ object Benchmarks {
 
     @Setup
     def setup(): Unit = {
-      val b = Board.fromResource[IO](this._board).unsafeRunSync()(global)
-      this.board = b.normalize
+      // for ZSTM, we want to avoid a CE threadpool
+      // existing during the measurement, so we create
+      // a separate runtime just for the initialization,
+      // and then shut it down:
+      val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
+      try {
+        val b = Board.fromResource[IO](this._board).unsafeRunSync()(setupRuntime)
+        this.board = b.normalize
+      } finally {
+        setupRuntime.shutdown()
+      }
     }
   }
 
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
+
+    protected val runtime =
+      cats.effect.unsafe.IORuntime.global
+
     final def unsafeRunSync[A](tsk: IO[A]): A =
-      tsk.unsafeRunSync()(global)
+      tsk.unsafeRunSync()(this.runtime)
   }
 
   @State(Scope.Benchmark)
