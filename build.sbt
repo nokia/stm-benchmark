@@ -203,9 +203,9 @@ lazy val dependencies = new {
   val catsVersion = "2.10.0"
   val catsEffectVersion = "3.5.3"
   val catsStmVersion = "0.13.4"
-  val zioVersion = "2.0.20"
+  val zioVersion = "2.0.21"
   val choamVersion = "0.4.0-RC7"
-  val fs2Version = "3.9.3"
+  val fs2Version = "3.9.4"
   val kindProjectorVersion = "0.13.2"
   val jmhVersion = "1.37"
 
@@ -228,7 +228,7 @@ lazy val dependencies = new {
 
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
-  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.0")
+  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.1")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
   val zioMunit = Def.setting("com.github.poslegm" %% "munit-zio" % "0.2.0")
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
