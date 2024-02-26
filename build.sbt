@@ -204,9 +204,9 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.3"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.0.21"
-  val choamVersion = "0.4.0-RC7"
+  val choamVersion = "0.4-d80b0b1"
   val fs2Version = "3.9.4"
-  val kindProjectorVersion = "0.13.2"
+  val kindProjectorVersion = "0.13.3"
   val jmhVersion = "1.37"
 
   val catsKernel = Def.setting("org.typelevel" %%% "cats-kernel" % catsVersion)
