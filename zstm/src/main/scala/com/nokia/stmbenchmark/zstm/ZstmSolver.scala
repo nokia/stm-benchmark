@@ -8,7 +8,7 @@ package com.nokia.stmbenchmark
 package zstm
 
 import zio.{ UIO, Task, ZIO }
-import zio.stm.{ STM, USTM, TaskSTM, ZSTM, TRef }
+import zio.stm.{ STM, USTM, TaskSTM, ZSTM }
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
@@ -114,20 +114,15 @@ object ZstmSolver {
             // we're going *back* from the route end:
             val startPoint = route.b
             val endPoint = route.a
-            TRef.make(List(startPoint)).flatMap { solutionVar =>
-              // TODO: optimize by avoiding `solutionVar` and using `iterate` state
-              ZSTM.iterate(true)(cont = c => c) { _ =>
-                solutionVar.get.flatMap { solution =>
-                  val adjacent = board.adjacentPoints(solution.head)
-                  ZSTM.foreach(adjacent) { a =>
-                    cost(a.y, a.x).map(a -> _)
-                  }.map { costs =>
-                    costs.filter(_._2 != 0).minBy(_._2)
-                  }.flatMap { lowestCost =>
-                    solutionVar.update(lowestCost._1 :: _).as(lowestCost._1 != endPoint)
-                  }
-                }
-              }.flatMap(_ => solutionVar.get)
+            ZSTM.iterate(List(startPoint))(cont = { solution => solution.head != endPoint }) { solution =>
+              val adjacent = board.adjacentPoints(solution.head)
+              ZSTM.foreach(adjacent) { a =>
+                cost(a.y, a.x).map(a -> _)
+              }.map { costs =>
+                costs.filter(_._2 != 0).minBy(_._2)
+              }.map { lowestCost =>
+                lowestCost._1 :: solution
+              }
             }
           }
 
