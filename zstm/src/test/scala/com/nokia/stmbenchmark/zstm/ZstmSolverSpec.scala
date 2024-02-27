@@ -80,7 +80,7 @@ final class ZstmSolverSpec extends ZSuite {
   }
 
   testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
-  // TODO: sparseshort.txt (OOM)
-  // TODO: sparselong.txt (too long, blocks on monitors)
-  // TODO: mainboard.txt (too long, blocks on monitors)
+  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  // TODO: sparselong.txt (too long)
+  // TODO: mainboard.txt (too long)
 }
