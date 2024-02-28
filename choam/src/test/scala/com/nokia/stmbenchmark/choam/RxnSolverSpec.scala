@@ -7,20 +7,14 @@
 package com.nokia.stmbenchmark
 package choam
 
-import cats.effect.kernel.Async
 import cats.effect.IO
 
 import munit.Location
 
-import common.JvmSolverSpec
+import common.JvmCeIoSolverSpec
 import common.Solver
 
-final class RxnSolverSpec extends JvmSolverSpec {
-
-  final override type Tsk[a] = IO[a]
-
-  final override protected implicit def asyncInstance: Async[IO] =
-    IO.asyncForIO
+final class RxnSolverSpec extends JvmCeIoSolverSpec {
 
   final override protected def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
     IO { assert(cond) }
@@ -31,14 +25,14 @@ final class RxnSolverSpec extends JvmSolverSpec {
   override protected def munitValueTransform: Option[ValueTransform] =
     None
 
-  override protected def createSolver: Tsk[Solver[Tsk]] = {
+  override protected def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       RxnSolver[IO](parLimit = numCpu, log = false)
     }
   }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
-  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
-  testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
+  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("sparseshort.txt")
+  testFromResource("sparselong.txt")
   // TODO: mainboard.txt (?)
 }

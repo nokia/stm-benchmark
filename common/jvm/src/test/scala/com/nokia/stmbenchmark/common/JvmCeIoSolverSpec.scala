@@ -7,16 +7,16 @@
 package com.nokia.stmbenchmark
 package common
 
-import cats.syntax.all._
+import cats.effect.IO
 
 import munit.Location
 
-abstract class JvmSolverSpec extends AbstractSolverSpec {
+abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
-  protected def testFromResource(testName: String, resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
-    test(testName) {
+  protected def testFromResource(resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
+    test(resourceName) {
       createSolver.flatMap { solver =>
-        Board.fromResource[Tsk](resourceName).flatMap { board =>
+        Board.fromResource[IO](resourceName).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
             if (printSolution) printAndCheckSolution(board, solution)
             else checkSolution(board, solution)

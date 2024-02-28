@@ -42,8 +42,8 @@ final class ZstmSolverSpec extends ZSuite {
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
     debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
 
-  private def testFromResource(testName: String, resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
-    testZ(testName) {
+  private def testFromResource(resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
+    testZ(resourceName) {
       createSolver.flatMap { solver =>
         Board.fromResource[Task](resourceName).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
@@ -79,8 +79,8 @@ final class ZstmSolverSpec extends ZSuite {
     }
   }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
-  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("sparseshort.txt")
   // TODO: sparselong.txt (too long)
   // TODO: mainboard.txt (too long)
 }

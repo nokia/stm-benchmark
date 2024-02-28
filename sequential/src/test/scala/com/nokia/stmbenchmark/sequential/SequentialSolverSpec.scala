@@ -8,19 +8,13 @@ package com.nokia.stmbenchmark
 package sequential
 
 import cats.effect.IO
-import cats.effect.kernel.Async
 
-import common.JvmSolverSpec
+import common.JvmCeIoSolverSpec
 import common.Solver
 
 import munit.Location
 
-final class SequentialSolverSpec extends JvmSolverSpec {
-
-  final override type Tsk[a] = IO[a]
-
-  protected override implicit def asyncInstance: Async[IO] =
-    IO.asyncForIO
+final class SequentialSolverSpec extends JvmCeIoSolverSpec {
 
   protected override def createSolver: IO[Solver[IO]] =
     SequentialSolver[IO](log = false)
@@ -34,8 +28,8 @@ final class SequentialSolverSpec extends JvmSolverSpec {
   protected override def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
     IO { assert(cond) }
 
-  testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
-  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
-  testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
-  testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
+  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("sparseshort.txt")
+  testFromResource("sparselong.txt")
+  testFromResource("mainboard.txt")
 }

@@ -9,26 +9,21 @@ package common
 
 import scala.concurrent.duration._
 
-import cats.syntax.all._
-import cats.effect.Async
+import cats.effect.IO
 
 import fs2.Stream
 
 import munit.{ CatsEffectSuite, Location }
 
-abstract class AbstractSolverSpec extends CatsEffectSuite {
+abstract class CeIoSolverSpec extends CatsEffectSuite {
 
-  type Tsk[a]
+  protected def createSolver: IO[Solver[IO]]
 
-  protected def createSolver: Tsk[Solver[Tsk]]
+  protected def debug(msg: String): IO[Unit]
 
-  protected def debug(msg: String): Tsk[Unit]
-
-  protected def assertTsk(cond: Boolean)(implicit loc: Location): Tsk[Unit]
+  protected def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit]
 
   protected def munitValueTransform: Option[ValueTransform]
-
-  protected implicit def asyncInstance: Async[Tsk]
 
   final override def munitValueTransforms: List[ValueTransform] =
     this.munitValueTransform.toList ++ super.munitValueTransforms
@@ -36,16 +31,16 @@ abstract class AbstractSolverSpec extends CatsEffectSuite {
   final override def munitIOTimeout =
     120.minutes
 
-  protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Tsk[Unit] =
+  protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] =
     assertTsk(board.isSolutionValid(solution.value))
 
-  protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Tsk[Unit] =
+  protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] =
     debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
   test("minimal") {
     createSolver.flatMap { solver =>
-      val s = Stream[Tsk, String](
+      val s = Stream[IO, String](
         List(
           "B 10 10",
           "P 2 2",
