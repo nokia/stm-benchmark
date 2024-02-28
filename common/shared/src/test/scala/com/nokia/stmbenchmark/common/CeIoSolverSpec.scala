@@ -15,7 +15,7 @@ import fs2.Stream
 
 import munit.{ CatsEffectSuite, Location }
 
-abstract class CeIoSolverSpec extends CatsEffectSuite {
+abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
 
   protected def createSolver: IO[Solver[IO]]
 

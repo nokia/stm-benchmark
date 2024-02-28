@@ -19,7 +19,7 @@ final class SequentialSolverSpec extends JvmCeIoSolverSpec {
   protected override def createSolver: IO[Solver[IO]] =
     SequentialSolver[IO](log = false)
 
-  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort.txt")
   testFromResource("sparselong.txt")
   testFromResource("mainboard.txt")

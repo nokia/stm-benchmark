@@ -14,12 +14,13 @@ import zio.interop.catz.asyncInstance
 
 import fs2.Stream
 
-import munit.Location
+import munit.{ Location, TestOptions }
 import munit.ZSuite
 
 import common.{ Board, Solver }
+import common.MunitUtils
 
-final class ZstmSolverSpec extends ZSuite {
+final class ZstmSolverSpec extends ZSuite with MunitUtils {
 
   final override def munitTimeout =
     120.minutes
@@ -42,13 +43,20 @@ final class ZstmSolverSpec extends ZSuite {
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
     debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
 
-  private def testFromResource(resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
-    testZ(resourceName) {
+  private def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
+    testFromResource(resourceNameAndOpts = resourceName)(loc)
+  }
+
+  private def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
+    testZ(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
-        Board.fromResource[Task](resourceName).flatMap { board =>
+        Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
-            if (printSolution) printAndCheckSolution(board, solution)
-            else checkSolution(board, solution)
+            if (resourceNameAndOpts.tags.contains(Verbose)) {
+              printAndCheckSolution(board, solution)
+            } else {
+              checkSolution(board, solution)
+            }
           }
         }
       }
@@ -79,8 +87,8 @@ final class ZstmSolverSpec extends ZSuite {
     }
   }
 
-  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort.txt")
-  // TODO: sparselong.txt (too long)
-  // TODO: mainboard.txt (too long)
+  testFromResource("sparselong.txt".ignore) // too long
+  testFromResource("mainboard.txt".ignore) // too long
 }

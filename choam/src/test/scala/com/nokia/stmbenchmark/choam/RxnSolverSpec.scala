@@ -22,8 +22,8 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
     }
   }
 
-  testFromResource("testBoard.txt", printSolution = true)
+  testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort.txt")
   testFromResource("sparselong.txt")
-  // TODO: mainboard.txt (?)
+  testFromResource("mainboard.txt".ignore) // TODO: ?
 }

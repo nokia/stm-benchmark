@@ -9,34 +9,41 @@ package common
 
 import cats.effect.IO
 
-import munit.Location
+import munit.{ Location, TestOptions }
 
 abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
-  protected def testFromResource(resourceName: String, printSolution: Boolean = false)(implicit loc: Location): Unit = {
-    test(resourceName) {
+  protected def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
+    testFromResource(resourceNameAndOpts = resourceName)(loc)
+  }
+
+  protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
+    test(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
-        Board.fromResource[IO](resourceName).flatMap { board =>
+        Board.fromResource[IO](resourceNameAndOpts.name).flatMap { board =>
           solver.solve(board.normalize).flatMap { solution =>
-            if (printSolution) printAndCheckSolution(board, solution)
-            else checkSolution(board, solution)
+            if (resourceNameAndOpts.tags.contains(Verbose)) {
+              printAndCheckSolution(board, solution)
+            } else {
+              checkSolution(board, solution)
+            }
           }
         }
       }
     }
   }
 
-  // Possible test resources:
+  // Included test resources:
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
-  // testFromResource(testName = "testBoard", resourceName = "testBoard.txt")
+  // testFromResource("testBoard.txt")
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparseshort.txt
-  // testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
+  // testFromResource("sparseshort.txt")
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparselong.txt
-  // testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
+  // testFromResource("sparselong.txt")
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
-  // testFromResource(testName = "mainboard", resourceName = "mainboard.txt")
+  // testFromResource("mainboard.txt")
 }
