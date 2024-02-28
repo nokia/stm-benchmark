@@ -19,17 +19,14 @@ abstract class CeIoSolverSpec extends CatsEffectSuite {
 
   protected def createSolver: IO[Solver[IO]]
 
-  protected def debug(msg: String): IO[Unit]
+  protected final def debug(msg: String): IO[Unit] =
+    IO.consoleForIO.println(msg)
 
-  protected def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit]
-
-  protected def munitValueTransform: Option[ValueTransform]
-
-  final override def munitValueTransforms: List[ValueTransform] =
-    this.munitValueTransform.toList ++ super.munitValueTransforms
+  protected final def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
+    IO(assert(cond)(loc))
 
   final override def munitIOTimeout =
-    120.minutes
+    30.minutes
 
   protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] =
     assertTsk(board.isSolutionValid(solution.value))

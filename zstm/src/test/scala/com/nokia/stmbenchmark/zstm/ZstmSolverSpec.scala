@@ -37,7 +37,7 @@ final class ZstmSolverSpec extends ZSuite {
   }
 
   protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
-    ZIO.attempt { assert(board.isSolutionValid(solution.value)) }
+    ZIO.attempt { assert(board.isSolutionValid(solution.value))(loc) }
 
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
     debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
