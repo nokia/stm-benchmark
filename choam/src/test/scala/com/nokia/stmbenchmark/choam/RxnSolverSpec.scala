@@ -38,11 +38,7 @@ final class RxnSolverSpec extends JvmSolverSpec {
   }
 
   testFromResource(testName = "testBoard", resourceName = "testBoard.txt", printSolution = true)
-
-  // testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
-  // TODO: fine with 0.4.0-RC7 and 0.4-a676a57, but OOM with 0.4-d80b0b1
-
+  testFromResource(testName = "sparseshort", resourceName = "sparseshort.txt")
   testFromResource(testName = "sparselong", resourceName = "sparselong.txt")
-
   // TODO: mainboard.txt (?)
 }
