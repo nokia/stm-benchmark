@@ -24,6 +24,7 @@ final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
 
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort.txt")
+  testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt".ignore) // too long
   testFromResource("mainboard.txt".ignore) // too long
 }
