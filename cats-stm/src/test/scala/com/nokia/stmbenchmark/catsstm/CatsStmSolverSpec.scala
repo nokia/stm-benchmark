@@ -12,13 +12,11 @@ import cats.effect.IO
 import common.JvmCeIoSolverSpec
 import common.Solver
 
-import munit.Location
-
 final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
 
   protected override def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      CatsStmSolver[IO](txnLimit = 2 * numCpu, parLimit = numCpu, log = false)
+      CatsStmSolver[IO](txnLimit = 2L * numCpu, parLimit = numCpu, log = false)
     }
   }
 

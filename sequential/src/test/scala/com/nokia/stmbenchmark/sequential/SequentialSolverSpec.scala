@@ -12,8 +12,6 @@ import cats.effect.IO
 import common.JvmCeIoSolverSpec
 import common.Solver
 
-import munit.Location
-
 final class SequentialSolverSpec extends JvmCeIoSolverSpec {
 
   protected override def createSolver: IO[Solver[IO]] =

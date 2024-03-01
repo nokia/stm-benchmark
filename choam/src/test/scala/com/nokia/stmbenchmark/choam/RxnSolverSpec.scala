@@ -9,8 +9,6 @@ package choam
 
 import cats.effect.IO
 
-import munit.Location
-
 import common.JvmCeIoSolverSpec
 import common.Solver
 
