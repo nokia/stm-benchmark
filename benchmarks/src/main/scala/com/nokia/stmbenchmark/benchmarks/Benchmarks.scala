@@ -63,10 +63,6 @@ object Benchmarks {
     protected[this] var seed: Long =
       0L
 
-    @Param(Array("0")) // 0 means default to availableProcessors()
-    protected[this] var parLimit: Int =
-      0
-
     protected var normalizedBoard: Board.Normalized =
       null
 
@@ -85,18 +81,15 @@ object Benchmarks {
       } finally {
         setupRuntime.shutdown()
       }
-      val pl = this.parLimit match {
-        case 0 =>
-          Runtime.getRuntime().availableProcessors()
-        case pl =>
-          pl
-      }
-      this.parLimit = pl
     }
   }
 
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
+
+    @Param(Array("0", "4")) // 0 means default to availableProcessors()
+    private[this] var parLimit: Int =
+      0
 
     private[this] var solveTask: IO[Solver.Solution] =
       null.asInstanceOf[IO[Solver.Solution]]
@@ -116,15 +109,37 @@ object Benchmarks {
     @Setup
     protected override def setup(): Unit = {
       super.setup()
-      val solver = unsafeRunSync(this.mkSolver(this.parLimit))
+      val pl = this.parLimit match {
+        case 0 =>
+          Runtime.getRuntime().availableProcessors()
+        case pl =>
+          pl
+      }
+      this.parLimit = pl
+      val solver = unsafeRunSync(this.mkSolver(pl))
       this.solveTask = IO.cede *> solver.solve(this.normalizedBoard)
     }
   }
 
+  // we're not using IOState here, because we don't want the parLimit param:
   @State(Scope.Benchmark)
-  class BaselineState extends IOState {
-    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      SequentialSolver[IO](log = false)
+  class BaselineState extends AbstractState {
+
+    private[this] val runtime =
+      cats.effect.unsafe.IORuntime.global
+
+    private[this] var solveTask: IO[Solver.Solution] =
+      null.asInstanceOf[IO[Solver.Solution]]
+
+    final override def runSolveTask(): Solver.Solution = {
+      this.solveTask.unsafeRunSync()(this.runtime)
+    }
+
+    @Setup
+    protected override def setup(): Unit = {
+      super.setup()
+      val solver = SequentialSolver[IO](log = false).unsafeRunSync()(this.runtime)
+      this.solveTask = IO.cede *> solver.solve(this.normalizedBoard)
     }
   }
 
@@ -145,6 +160,10 @@ object Benchmarks {
 
   @State(Scope.Benchmark)
   class ZstmState extends AbstractState {
+
+    @Param(Array("0", "4")) // 0 means default to availableProcessors()
+    private[this] var parLimit: Int =
+      0
 
     private[this] val runtime = {
       zio.Runtime(
@@ -171,7 +190,14 @@ object Benchmarks {
     @Setup
     protected override def setup(): Unit = {
       super.setup()
-      val solver = unsafeRunSync(ZstmSolver(parLimit = this.parLimit, log = false))
+      val pl = this.parLimit match {
+        case 0 =>
+          Runtime.getRuntime().availableProcessors()
+        case pl =>
+          pl
+      }
+      this.parLimit = pl
+      val solver = unsafeRunSync(ZstmSolver(parLimit = pl, log = false))
       this.solveTask = zio.ZIO.yieldNow *> solver.solve(this.normalizedBoard)
     }
   }
