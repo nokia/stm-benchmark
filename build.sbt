@@ -5,8 +5,8 @@
  */
 
 // Scala versions:
-val scala2 = "2.13.12"
-val scala3 = "3.3.1"
+val scala2 = "2.13.13"
+val scala3 = "3.3.3"
 
 val TestInternal = "test-internal"
 
@@ -118,7 +118,7 @@ lazy val commonSettings = Seq[Setting[_]](
       // 2.13:
       List(
         // -release implies -target
-        "-Xsource:3",
+        "-Xsource:3-cross",
         "-Xverify",
         "-Wconf:any:warning-verbose",
         "-Ywarn-unused:implicits",
@@ -140,9 +140,8 @@ lazy val commonSettings = Seq[Setting[_]](
       // 3.x:
       List(
         // -release implies -Xtarget
-        "-source:3.0",
+        "-source:3.3",
         "-Xverify-signatures",
-        "-Wconf:any:v",
         "-Wunused:all",
         // no equivalent:
         "-Ykind-projector",
