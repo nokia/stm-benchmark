@@ -31,22 +31,22 @@ class Benchmarks {
 
   @Benchmark
   def baseline(st: BaselineState): Solver.Solution = {
-    st.unsafeRunSync(st.solver.solve(st.board))
+    st.runSolveTask()
   }
 
   @Benchmark
   def catsStm(st: CatsStmState): Solver.Solution = {
-    st.unsafeRunSync(st.solver.solve(st.board))
+    st.runSolveTask()
   }
 
   @Benchmark
   def rxn(st: RxnState): Solver.Solution = {
-    st.unsafeRunSync(st.solver.solve(st.board))
+    st.runSolveTask()
   }
 
   @Benchmark
   def zstm(st: ZstmState): Solver.Solution = {
-    st.unsafeRunSync(st.solver.solve(st.board))
+    st.runSolveTask()
   }
 }
 
@@ -56,22 +56,24 @@ object Benchmarks {
   abstract class AbstractState {
 
     @Param(Array("testBoard.txt"))
-    var _board: String =
+    private[this] var board: String =
       null
 
-    var board: Board.Normalized =
+    protected var normalizedBoard: Board.Normalized =
       null
+
+    def runSolveTask(): Solver.Solution
 
     @Setup
-    def setup(): Unit = {
+    protected def setup(): Unit = {
       // for ZSTM, we want to avoid a CE threadpool
       // existing during the measurement, so we create
       // a separate runtime just for the initialization,
       // and then shut it down:
       val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
       try {
-        val b = Board.fromResource[IO](this._board).unsafeRunSync()(setupRuntime)
-        this.board = b.normalize
+        val b = Board.fromResource[IO](this.board).unsafeRunSync()(setupRuntime)
+        this.normalizedBoard = b.normalize
       } finally {
         setupRuntime.shutdown()
       }
@@ -81,23 +83,38 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
 
-    protected val runtime =
+    private[this] var solveTask: IO[Solver.Solution] =
+      null.asInstanceOf[IO[Solver.Solution]]
+
+    protected val solver: Solver[IO]
+
+    final override def runSolveTask(): Solver.Solution = {
+      this.unsafeRunSync(this.solveTask)
+    }
+
+    private[this] val runtime =
       cats.effect.unsafe.IORuntime.global
 
-    final def unsafeRunSync[A](tsk: IO[A]): A =
-      (IO.cede *> tsk).unsafeRunSync()(this.runtime)
+    protected final def unsafeRunSync[A](tsk: IO[A]): A =
+      tsk.unsafeRunSync()(this.runtime)
+
+    @Setup
+    protected override def setup(): Unit = {
+      super.setup()
+      this.solveTask = IO.cede *> this.solver.solve(this.normalizedBoard)
+    }
   }
 
   @State(Scope.Benchmark)
   class BaselineState extends IOState {
-    val solver: Solver[IO] = {
+    protected final override val solver: Solver[IO] = {
       unsafeRunSync(SequentialSolver[IO](log = false))
     }
   }
 
   @State(Scope.Benchmark)
   class CatsStmState extends IOState {
-    val solver: Solver[IO] = {
+    protected final override val solver: Solver[IO] = {
       val numCpu = Runtime.getRuntime().availableProcessors()
       unsafeRunSync(CatsStmSolver[IO](txnLimit = 2L * numCpu, parLimit = numCpu, log = false))
     }
@@ -105,7 +122,7 @@ object Benchmarks {
 
   @State(Scope.Benchmark)
   class RxnState extends IOState {
-    val solver: Solver[IO] = {
+    protected final override val solver: Solver[IO] = {
       val numCpu = Runtime.getRuntime().availableProcessors()
       unsafeRunSync(RxnSolver[IO](parLimit = numCpu, log = false))
     }
@@ -122,16 +139,29 @@ object Benchmarks {
       )
     }
 
-    val solver: Solver[Task] = {
+    private[this] final val solver: Solver[Task] = {
       val numCpu = Runtime.getRuntime().availableProcessors()
       unsafeRunSync(ZstmSolver(parLimit = numCpu, log = false))
     }
 
-    final def unsafeRunSync[A](tsk: Task[A]): A = {
+    private[this] var solveTask: Task[Solver.Solution] =
+      null.asInstanceOf[Task[Solver.Solution]]
+
+    private[this] final def unsafeRunSync[A](tsk: Task[A]): A = {
       val task = zio.ZIO.yieldNow *> tsk
       zio.Unsafe.unsafe { implicit u =>
         this.runtime.unsafe.run(task).getOrThrow()
       }
+    }
+
+    final override def runSolveTask(): Solver.Solution = {
+      unsafeRunSync(this.solveTask)
+    }
+
+    @Setup
+    protected override def setup(): Unit = {
+      super.setup()
+      this.solveTask = zio.ZIO.yieldNow *> this.solver.solve(this.normalizedBoard)
     }
   }
 }
