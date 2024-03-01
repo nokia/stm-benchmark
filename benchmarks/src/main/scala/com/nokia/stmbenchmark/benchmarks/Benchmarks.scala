@@ -85,7 +85,7 @@ object Benchmarks {
       cats.effect.unsafe.IORuntime.global
 
     final def unsafeRunSync[A](tsk: IO[A]): A =
-      tsk.unsafeRunSync()(this.runtime)
+      (IO.cede *> tsk).unsafeRunSync()(this.runtime)
   }
 
   @State(Scope.Benchmark)
@@ -128,8 +128,9 @@ object Benchmarks {
     }
 
     final def unsafeRunSync[A](tsk: Task[A]): A = {
+      val task = zio.ZIO.yieldNow *> tsk
       zio.Unsafe.unsafe { implicit u =>
-        this.runtime.unsafe.run(tsk).getOrThrow()
+        this.runtime.unsafe.run(task).getOrThrow()
       }
     }
   }
