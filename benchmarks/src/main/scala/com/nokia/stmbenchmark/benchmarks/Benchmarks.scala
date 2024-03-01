@@ -145,9 +145,13 @@ object Benchmarks {
 
   @State(Scope.Benchmark)
   class CatsStmState extends IOState {
+
+    @Param(Array("1", "2", "4"))
+    protected[this] var txnLimitMultiplier: Int =
+      0
+
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      // FIXME: txnLimit
-      CatsStmSolver[IO](txnLimit = 2L * parLimit, parLimit = parLimit, log = false)
+      CatsStmSolver[IO](txnLimit = this.txnLimitMultiplier * parLimit, parLimit = parLimit, log = false)
     }
   }
 
