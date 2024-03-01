@@ -59,6 +59,10 @@ object Benchmarks {
     private[this] var board: String =
       null
 
+    @Param(Array("42"))
+    private[this] var seed: Long =
+      0L
+
     protected var normalizedBoard: Board.Normalized =
       null
 
@@ -73,7 +77,7 @@ object Benchmarks {
       val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
       try {
         val b = Board.fromResource[IO](this.board).unsafeRunSync()(setupRuntime)
-        this.normalizedBoard = b.normalize
+        this.normalizedBoard = b.normalize(this.seed)
       } finally {
         setupRuntime.shutdown()
       }

@@ -21,7 +21,7 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
     test(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
         Board.fromResource[IO](resourceNameAndOpts.name).flatMap { board =>
-          solver.solve(board.normalize).flatMap { solution =>
+          solver.solve(board.normalize()).flatMap { solution =>
             if (resourceNameAndOpts.tags.contains(Verbose)) {
               printAndCheckSolution(board, solution)
             } else {

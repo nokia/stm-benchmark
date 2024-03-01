@@ -51,7 +51,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     testZ(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
         Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
-          solver.solve(board.normalize).flatMap { solution =>
+          solver.solve(board.normalize()).flatMap { solution =>
             if (resourceNameAndOpts.tags.contains(Verbose)) {
               printAndCheckSolution(board, solution)
             } else {
@@ -80,7 +80,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
         ).mkString("\n")
       )
       Board.fromStream(s).flatMap { board =>
-        solver.solve(board.normalize).flatMap { solution =>
+        solver.solve(board.normalize(42L)).flatMap { solution =>
           printAndCheckSolution(board, solution)
         }
       }

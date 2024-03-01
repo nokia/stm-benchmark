@@ -120,10 +120,14 @@ final case class Board(
     this.isSolutionValid(routes.toList, solution)
   }
 
-  def normalize: Board.Normalized = {
+  def normalize(): Board.Normalized = {
+    this.normalize(-8309089642316774578L)
+  }
+
+  def normalize(seed: Long): Board.Normalized = {
     // normalize board, by (deterministically)
     // shuffling routes (to reduce obvious conflicts):
-    val rnd = new Random(-8309089642316774578L)
+    val rnd = new Random(seed)
     Board.Normalized(
       height = this.height,
       width = this.width,

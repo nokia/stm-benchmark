@@ -51,7 +51,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
         ).mkString("\n")
       )
       Board.fromStream(s).flatMap { board =>
-        solver.solve(board.normalize).flatMap { solution =>
+        solver.solve(board.normalize(42L)).flatMap { solution =>
           printAndCheckSolution(board, solution)
         }
       }
