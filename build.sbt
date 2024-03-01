@@ -204,7 +204,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.3"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.0.21"
-  val choamVersion = "0.4-c93006f" // "0.4-d80b0b1" // "0.4-a676a57" // "0.4.0-RC7"
+  val choamVersion = "0.4-ba83b91"
   val fs2Version = "3.9.4"
   val kindProjectorVersion = "0.13.3"
   val jmhVersion = "1.37"
@@ -226,7 +226,7 @@ lazy val dependencies = new {
     )
   }
 
-  val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
+  // TODO: val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.1")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
@@ -234,7 +234,7 @@ lazy val dependencies = new {
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
 }
 
-addCommandAlias("staticAnalysis", "Test/compile")
+addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")
 addCommandAlias("validate", ";staticAnalysis;test")
 
 // profiling: `-prof jfr`

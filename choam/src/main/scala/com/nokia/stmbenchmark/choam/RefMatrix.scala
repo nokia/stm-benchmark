@@ -41,11 +41,14 @@ sealed abstract class RefMatrix[A] {
 
 object RefMatrix {
 
+  private[this] val allocStr =
+    Ref.Array.AllocationStrategy(sparse = true, flat = true, padded = false)
+
   def apply[A](h: Int, w: Int, initial: A): Axn[RefMatrix[A]] = {
     require(h >= 0)
     require(w >= 0)
     val len = h * w
-    Ref.lazyArray(len, initial).map { refArr =>
+    Ref.array(len, initial, allocStr).map { refArr =>
       new RefMatrix[A] {
 
         final override val height: Int =
