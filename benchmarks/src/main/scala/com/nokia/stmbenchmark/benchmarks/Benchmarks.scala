@@ -14,7 +14,6 @@ import cats.effect.IO
 import zio.Task
 
 import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.infra.Blackhole
 
 import common.{ Solver, Board }
 import catsstm.CatsStmSolver
@@ -22,40 +21,32 @@ import zstm.ZstmSolver
 import choam.RxnSolver
 import sequential.SequentialSolver
 
-@Fork(3, jvmArgsAppend = Array("-Dcats.effect.tracing.mode=NONE"))
+@Fork(value = 3, jvmArgsAppend = Array("-Dcats.effect.tracing.mode=NONE"))
 @Threads(1) // because it runs on a thread-pool
 @BenchmarkMode(Array(Mode.AverageTime))
-@Timeout(1, HOURS)
+@Timeout(time = 1, timeUnit = HOURS)
 class Benchmarks {
 
   import Benchmarks._
 
   @Benchmark
-  def baseline(st: BaselineState, bh: Blackhole): Unit = {
-    bh.consume(
-      st.unsafeRunSync(st.solver.solve(st.board)) : Solver.Solution
-    )
+  def baseline(st: BaselineState): Solver.Solution = {
+    st.unsafeRunSync(st.solver.solve(st.board))
   }
 
   @Benchmark
-  def catsStm(st: CatsStmState, bh: Blackhole): Unit = {
-    bh.consume(
-      st.unsafeRunSync(st.solver.solve(st.board)) : Solver.Solution
-    )
+  def catsStm(st: CatsStmState): Solver.Solution = {
+    st.unsafeRunSync(st.solver.solve(st.board))
   }
 
   @Benchmark
-  def rxn(st: RxnState, bh: Blackhole): Unit = {
-    bh.consume(
-      st.unsafeRunSync(st.solver.solve(st.board)) : Solver.Solution
-    )
+  def rxn(st: RxnState): Solver.Solution = {
+    st.unsafeRunSync(st.solver.solve(st.board))
   }
 
   @Benchmark
-  def zstm(st: ZstmState, bh: Blackhole): Unit = {
-    bh.consume(
-      st.unsafeRunSync(st.solver.solve(st.board)) : Solver.Solution
-    )
+  def zstm(st: ZstmState): Solver.Solution = {
+    st.unsafeRunSync(st.solver.solve(st.board))
   }
 }
 
@@ -108,7 +99,7 @@ object Benchmarks {
   class CatsStmState extends IOState {
     val solver: Solver[IO] = {
       val numCpu = Runtime.getRuntime().availableProcessors()
-      unsafeRunSync(CatsStmSolver[IO](txnLimit = 2 * numCpu, parLimit = numCpu, log = false))
+      unsafeRunSync(CatsStmSolver[IO](txnLimit = 2L * numCpu, parLimit = numCpu, log = false))
     }
   }
 
