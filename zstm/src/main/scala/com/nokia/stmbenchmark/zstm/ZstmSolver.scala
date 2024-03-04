@@ -39,7 +39,7 @@ object ZstmSolver {
               costStr <- cost.debug(debug = log)(i => f"$i%2s")
               _ <- debug("Cost after `expand`:\n" + costStr)
               solution <- solve(route, cost)
-              _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution)))
+              _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
               _ <- lay(depth, solution)
             } yield solution
             txn.commit
@@ -146,7 +146,7 @@ object ZstmSolver {
               }
             }
             solveInParallel.flatMap { solution =>
-              debugF("Full solution:\n" + board.debugSolution(solution)).as(Solver.Solution(solution))
+              debugF("Full solution:\n" + board.debugSolution(solution, debug = log)).as(Solver.Solution(solution))
             }
           }
         }

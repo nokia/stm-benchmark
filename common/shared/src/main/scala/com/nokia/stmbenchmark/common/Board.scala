@@ -75,33 +75,37 @@ sealed abstract class AbstractBoard(
   }
 
 
-  def debugSolution(solution: Map[Route, List[Point]]): String = {
-    val arr = new Array[Char](width * height)
-    Arrays.fill(arr, EMPTY)
-    val writePadLetters = solution.size <= LETTERS.size
-    for (((route, s), routeIdx) <- solution.zipWithIndex) {
-      for (p <- s) {
-        val idx = (p.y * width) + p.x
-        arr(idx) = arr(idx) match {
-          case EMPTY => '1'
-          case ch => (ch + 1).toChar
+  def debugSolution(solution: Map[Route, List[Point]], debug: Boolean): String = {
+    if (debug) {
+      val arr = new Array[Char](width * height)
+      Arrays.fill(arr, EMPTY)
+      val writePadLetters = solution.size <= LETTERS.size
+      for (((route, s), routeIdx) <- solution.zipWithIndex) {
+        for (p <- s) {
+          val idx = (p.y * width) + p.x
+          arr(idx) = arr(idx) match {
+            case EMPTY => '1'
+            case ch => (ch + 1).toChar
+          }
         }
+        val aIdx = (route.a.y * width) + route.a.x
+        val bIdx = (route.b.y * width) + route.b.x
+        val padChar = if (writePadLetters) LETTERS(routeIdx) else 'O'
+        arr(aIdx) = padChar
+        arr(bIdx) = padChar
       }
-      val aIdx = (route.a.y * width) + route.a.x
-      val bIdx = (route.b.y * width) + route.b.x
-      val padChar = if (writePadLetters) LETTERS(routeIdx) else 'O'
-      arr(aIdx) = padChar
-      arr(bIdx) = padChar
-    }
 
-    val sb = new java.lang.StringBuilder()
-    for (row <- 0 until height) {
-      for (col <- 0 until width) {
-        sb.append(arr((row * width) + col))
+      val sb = new java.lang.StringBuilder()
+      for (row <- 0 until height) {
+        for (col <- 0 until width) {
+          sb.append(arr((row * width) + col))
+        }
+        sb.append('\n')
       }
-      sb.append('\n')
+      sb.toString()
+    } else {
+      ""
     }
-    sb.toString()
   }
 }
 

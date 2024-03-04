@@ -41,7 +41,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     ZIO.attempt { assert(board.isSolutionValid(solution.value))(loc) }
 
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
-    debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
+    debug(board.debugSolution(solution.value, debug = true)) *> checkSolution(board, solution)
 
   private def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
     testFromResource(resourceNameAndOpts = resourceName)(loc)
@@ -91,5 +91,5 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt".ignore) // too long
-  testFromResource("mainboard.txt".ignore) // too long
+  testFromResource("mainboard.txt".ignore) // too long (more than 1 hour)
 }

@@ -32,7 +32,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
     assertTsk(board.isSolutionValid(solution.value))
 
   protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] =
-    debug(board.debugSolution(solution.value)) *> checkSolution(board, solution)
+    debug(board.debugSolution(solution.value, debug = true)) *> checkSolution(board, solution)
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
   test("minimal") {
