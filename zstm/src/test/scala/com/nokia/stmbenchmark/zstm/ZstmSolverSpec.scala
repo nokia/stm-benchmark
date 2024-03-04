@@ -89,6 +89,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
 
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort.txt")
+  testFromResource("sparselong_micro.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt".ignore) // too long
   testFromResource("mainboard.txt".ignore) // too long (more than 1 hour)
