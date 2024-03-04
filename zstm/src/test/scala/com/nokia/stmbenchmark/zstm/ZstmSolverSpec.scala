@@ -23,7 +23,7 @@ import common.MunitUtils
 final class ZstmSolverSpec extends ZSuite with MunitUtils {
 
   final override def munitTimeout =
-    30.minutes
+    60.minutes
 
   private def createSolver: Task[Solver[Task]] = {
     ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>

@@ -26,7 +26,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
     IO(assert(cond)(loc))
 
   final override def munitIOTimeout =
-    30.minutes
+    60.minutes
 
   protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] =
     assertTsk(board.isSolutionValid(solution.value))

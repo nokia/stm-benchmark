@@ -172,7 +172,7 @@ lazy val commonSettings = Seq[Setting[_]](
     if (!ScalaArtifacts.isScala3(scalaVersion.value)) {
       List(
         compilerPlugin("org.typelevel" % "kind-projector" % dependencies.kindProjectorVersion cross CrossVersion.full),
-        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+        compilerPlugin("com.olegpy" %% "better-monadic-for" % dependencies.betterMonadicForVersion),
       )
     } else {
       Nil
@@ -203,9 +203,10 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.3"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.0.21"
-  val choamVersion = "0.4-ba83b91"
+  val choamVersion = "0.4-47850a5"
   val fs2Version = "3.9.4"
   val kindProjectorVersion = "0.13.3"
+  val betterMonadicForVersion = "0.3.1"
   val jmhVersion = "1.37"
 
   val catsKernel = Def.setting("org.typelevel" %%% "cats-kernel" % catsVersion)
