@@ -9,15 +9,11 @@ package benchmarks
 
 import java.util.concurrent.TimeUnit.HOURS
 
-import scala.concurrent.duration._
-
 import cats.effect.IO
 
 import zio.Task
 
 import org.openjdk.jmh.annotations._
-
-import dev.tauri.choam.Rxn
 
 import common.{ Solver, Board }
 import catsstm.CatsStmSolver
@@ -169,25 +165,14 @@ object Benchmarks {
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       val str = this.strategy match {
         case "spin" =>
-          Rxn.Strategy.Default
+          RxnSolver.spinStrategy
         case "cede" =>
-          Rxn.Strategy.cede(
-            maxRetries = Rxn.Strategy.Default.maxRetries,
-            maxSpin = Rxn.Strategy.Default.maxSpin,
-            randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
-          )
+          RxnSolver.cedeStrategy
         case "sleep" =>
-          Rxn.Strategy.sleep(
-            maxRetries = Rxn.Strategy.Default.maxRetries,
-            maxSpin = Rxn.Strategy.Default.maxSpin,
-            randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
-            maxSleep = 100.millis, // FIXME
-            randomizeSleep = true,
-          )
+          RxnSolver.sleepStrategy
         case x =>
           throw new IllegalArgumentException(s"invalid strategy: ${x}")
       }
-
       RxnSolver[IO](parLimit = parLimit, log = false, strategy = str)
     }
   }

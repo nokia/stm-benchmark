@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package choam
 
+import scala.concurrent.duration._
+
 import cats.syntax.all._
 import cats.effect.syntax.all._
 import cats.effect.Async
@@ -18,6 +20,27 @@ import dev.tauri.choam.async.AsyncReactive
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
 object RxnSolver {
+
+  private[stmbenchmark] val spinStrategy: Rxn.Strategy.Spin =
+    Rxn.Strategy.Default
+
+  private[stmbenchmark] val cedeStrategy: Rxn.Strategy = {
+    Rxn.Strategy.cede(
+      maxRetries = Rxn.Strategy.Default.maxRetries,
+      maxSpin = Rxn.Strategy.Default.maxSpin,
+      randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
+    )
+  }
+
+  private[stmbenchmark] val sleepStrategy: Rxn.Strategy = {
+    Rxn.Strategy.sleep(
+      maxRetries = Rxn.Strategy.Default.maxRetries,
+      maxSpin = Rxn.Strategy.Default.maxSpin,
+      randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
+      maxSleep = 100.millis, // FIXME
+      randomizeSleep = true,
+    )
+  }
 
   def apply[F[_]](
     parLimit: Int,
