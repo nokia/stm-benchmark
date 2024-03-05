@@ -12,7 +12,8 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.{ Rxn, Axn, Reactive, Ref }
+import dev.tauri.choam.{ Rxn, Axn, Ref }
+import dev.tauri.choam.async.AsyncReactive
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
@@ -21,8 +22,8 @@ object RxnSolver {
   def apply[F[_]](parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
     F.pure(new Solver[F] {
 
-      private[this] implicit val reactive: Reactive[F] =
-        Reactive.forSync[F]
+      private[this] implicit val reactive: AsyncReactive[F] =
+        AsyncReactive.forAsync[F]
 
       private[this] val _c =
         Console.make[F]
@@ -53,7 +54,7 @@ object RxnSolver {
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
             _ <- lay(depth, solution)
           } yield solution
-          reactive.apply(act, null, runConfig)
+          reactive.applyAsync(act, null, runConfig)
         }
 
         def expand(depth: RefMatrix[Int], route: Route): Axn[RefMatrix[Int]] = {
