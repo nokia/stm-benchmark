@@ -19,7 +19,11 @@ import common.{ Solver, Board, Point, Route, BoolMatrix }
 
 object RxnSolver {
 
-  def apply[F[_]](parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
+  def apply[F[_]](
+    parLimit: Int,
+    log: Boolean,
+    strategy: Rxn.Strategy = Rxn.Strategy.Default,
+  )(implicit F: Async[F]): F[Solver[F]] = {
     F.pure(new Solver[F] {
 
       private[this] implicit val reactive: AsyncReactive[F] =
@@ -28,8 +32,8 @@ object RxnSolver {
       private[this] val _c =
         Console.make[F]
 
-      private[this] val runConfig: Rxn.Strategy.Spin =
-        Rxn.Strategy.Default
+      private[this] val runConfig: Rxn.Strategy =
+        strategy
 
       private[this] final def debug(msg: String): Axn[Unit] = {
         if (log) Axn.unsafe.delay { println(msg) }
