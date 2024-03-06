@@ -15,11 +15,12 @@ we've implemented (a simplified version of) *Lee’s algorithm*, with STM (to pa
 
 ## Tested STM implementations
 
-We've implemented the algorithm in various Scala STMs:
+We've implemented the algorithm with various Scala STMs:
 
 - [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm).
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam) (technically not an STM, but close enough).
 - [ZSTM](https://github.com/zio/zio/tree/series/2.x/core/shared/src/main/scala/zio/stm) in folder [zstm](/zstm).
 
 We also have a (baseline) sequential (non-parallelized) implementation of the same algorithm in folder
-[sequential](/sequential).
+[sequential](/sequential). This sequential implementation is intentionally not very well optimized,
+because we'd like to compare it to similarly high-level and easy to use STMs.
