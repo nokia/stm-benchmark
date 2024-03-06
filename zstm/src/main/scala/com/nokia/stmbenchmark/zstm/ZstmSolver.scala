@@ -28,8 +28,8 @@ object ZstmSolver {
 
     ZIO.succeed {
       new Solver[Task] {
-        override def solve(board: Board.Normalized): Task[Solver.Solution] = {
 
+        final override def solve(board: Board.Normalized): Task[Solver.Solution] = {
           val obstructed = BoolMatrix.obstructedFromBoard(board)
 
           def solveOneRoute(depth: TMatrix[Int], route: Route): Task[List[Point]] = {
@@ -48,6 +48,7 @@ object ZstmSolver {
           def expand(depth: TMatrix[Int], route: Route): TaskSTM[TMatrix[Int]] = {
             val startPoint = route.a
             val endPoint = route.b
+
             TMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
               cost.set(startPoint.y, startPoint.x, 1).flatMap { _ =>
 

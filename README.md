@@ -10,8 +10,9 @@
 
 *Benchmarks for software transactional memory (STM) implementations in Scala*
 
-Based on the idea of [chrisseaton/ruby-stm-lee-demo](https://github.com/chrisseaton/ruby-stm-lee-demo),
-we've implemented (a simplified version of) *Lee’s algorithm*, and used STM to parallelize it.
+Based on the idea of [chrisseaton/ruby-stm-lee-demo](https://github.com/chrisseaton/ruby-stm-lee-demo)
+(and originally on [Lee-TM](https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark/)),
+we've implemented (a simplified version of) *Lee’s routing algorithm*, and used STM to parallelize it.
 
 ## Tested STM implementations
 

@@ -152,9 +152,7 @@ object CatsStmSolver {
               initial = 0,
             )).flatMap { depth =>
               val solveInParallel = board.routes.parTraverseN(parLimit) { route =>
-                solveOneRoute(depth, route).map { solution =>
-                  route -> solution
-                }
+                solveOneRoute(depth, route).map(route -> _)
               }
               solveInParallel.flatMap { solutions =>
                 val solution = Map(solutions: _*)
