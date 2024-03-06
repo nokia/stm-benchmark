@@ -14,6 +14,21 @@ Based on the idea of [chrisseaton/ruby-stm-lee-demo](https://github.com/chrissea
 (and originally on [Lee-TM](https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark/)),
 we've implemented (a simplified version of) *Lee’s routing algorithm*, and used STM to parallelize it.
 
+Further reading:
+
+- https://chrisseaton.com/truffleruby/ruby-stm/ (the Ruby implementation referred to above),
+- and the two papers about Lee-TM:
+  - Ian Watson, Chris Kirkham and Mikel Luján.
+    "A Study of a Transactional Parallel Routing Algorithm."
+    _In Proceedings of the 16th International Conference on Parallel Architectures and Compilation Techniques (PACT 2007),
+    Brasov, Romania, Sept. 2007, pp 388-398._
+    ([PDF](https://apt.cs.manchester.ac.uk/apt/projects/TM/LeeRouting/lee-TM-pact2007.pdf))
+  - Mohammad Ansari, Christos Kotselidis, Kim Jarvis, Mikel Luján, Chris Kirkham, and Ian Watson.
+    "Lee-TM: A Non-trivial Benchmark for Transactional Memory."
+    _In Proceedings of the 8th International Conference on Algorithms and Architectures for Parallel Processing (ICA3PP 2008),
+    Aiya Napa, Cyprus, June 2008._
+    ([PDF](https://apt.cs.manchester.ac.uk/apt/people/ansarim/papers/pdfs/ica3pp08-ansari.pdf))
+
 ## Tested STM implementations
 
 We've implemented the algorithm with various Scala STMs. We tried to use the exact same algorithm
