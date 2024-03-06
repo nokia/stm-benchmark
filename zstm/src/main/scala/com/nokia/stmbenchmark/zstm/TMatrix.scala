@@ -17,12 +17,12 @@ final class TMatrix[A] private (val height: Int, val width: Int, arr: TArray[A])
     arr((row * width) + col)
   }
 
-  def update(row: Int, col: Int, a: A): USTM[Unit] = {
-    arr((row * width) + col) = { _ => a }
+  def set(row: Int, col: Int, a: A): USTM[Unit] = {
+    arr.update((row * width) + col, { _ => a })
   }
 
   def modify(row: Int, col: Int, f: A => A): USTM[Unit] = {
-    arr((row * width) + col) = f
+    arr.update((row * width) + col, f)
   }
 
   def debug(debug: Boolean)(implicit A: Show[A]): USTM[String] = {

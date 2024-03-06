@@ -49,7 +49,7 @@ object ZstmSolver {
             val startPoint = route.a
             val endPoint = route.b
             TMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
-              cost.update(startPoint.y, startPoint.x, 1).flatMap { _ =>
+              cost.set(startPoint.y, startPoint.x, 1).flatMap { _ =>
 
                 def go(wavefront: List[Point]): TaskSTM[List[Point]] = {
                   val mkNewWf = ZSTM.foreach(wavefront) { point =>
@@ -63,7 +63,7 @@ object ZstmSolver {
                             depth(adjacent.y, adjacent.x).flatMap { d =>
                               val newCost = pointCost + Board.cost(d)
                               if ((currentCost == 0) || (newCost < currentCost)) {
-                                cost.update(adjacent.y, adjacent.x, newCost).as(adjacent :: Nil)
+                                cost.set(adjacent.y, adjacent.x, newCost).as(adjacent :: Nil)
                               } else {
                                 ZSTM.succeed(Nil)
                               }
