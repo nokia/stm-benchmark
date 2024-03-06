@@ -67,9 +67,7 @@ object ZstmSolver {
                               } else {
                                 ZSTM.succeed(Nil)
                               }
-
                             }
-
                           }
                         }
                       }.map(_.flatten)
