@@ -7,6 +7,7 @@
 package com.nokia.stmbenchmark
 package catsstm
 
+import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Console
@@ -48,9 +49,10 @@ object CatsStmSolver {
                 costStr <- cost.debug(debug = log)(i => f"$i%2s")
                 _ <- debug("Cost after `expand`:\n" + costStr)
                 solution <- solve(route, cost)
-                _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
+                solutionList = solution.toList
+                _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
                 _ <- lay(depth, solution)
-              } yield solution
+              } yield solutionList
               stm.commit(txn)
             }
 
@@ -61,21 +63,21 @@ object CatsStmSolver {
               TMatrix[F, stm.type, Int](stm)(depth.height, depth.width, 0).flatMap { cost =>
                 cost(startPoint.y, startPoint.x).set(1).flatMap { _ =>
 
-                  def go(wavefront: List[Point]): Txn[List[Point]] = {
-                    val mkNewWf = wavefront.foldMapA[Txn, List[Point]] { point =>
+                  def go(wavefront: Chain[Point]): Txn[Chain[Point]] = {
+                    val mkNewWf = wavefront.foldMapM[Txn, Chain[Point]] { point =>
                       cost(point.y, point.x).get.flatMap { pointCost =>
-                        board.adjacentPoints(point).foldMapA[Txn, List[Point]] { adjacent =>
+                        board.adjacentPoints(point).foldMapM[Txn, Chain[Point]] { adjacent =>
                           if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                             // can't go in that direction
-                            stm.pure(Nil)
+                            stm.pure(Chain.empty)
                           } else {
                             cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
                               depth(adjacent.y, adjacent.x).get.flatMap { d =>
                                 val newCost = pointCost + Board.cost(d)
                                 if ((currentCost == 0) || (newCost < currentCost)) {
-                                  cost(adjacent.y, adjacent.x).set(newCost).as(adjacent :: Nil)
+                                  cost(adjacent.y, adjacent.x).set(newCost).as(Chain(adjacent))
                                 } else {
-                                  stm.pure(Nil)
+                                  stm.pure(Chain.empty)
                                 }
                               }
                             }
@@ -93,7 +95,7 @@ object CatsStmSolver {
                             newWavefront.traverse { marked =>
                               cost(marked.y, marked.x).get
                             }.flatMap { newCosts =>
-                              val minimumNewCost = newCosts.min
+                              val minimumNewCost = newCosts.minimumOption.get // TODO: partial function
                               if (costAtRouteEnd < minimumNewCost) {
                                 // no new location has lower cost than the
                                 // cost currently at the route end, so
@@ -113,16 +115,16 @@ object CatsStmSolver {
                     }
                   }
 
-                  go(List(startPoint)).as(cost)
+                  go(Chain(startPoint)).as(cost)
                 }
               }
             }
 
-            def solve(route: Route, cost: TMatrix[F, stm.type, Int]): Txn[List[Point]] = {
+            def solve(route: Route, cost: TMatrix[F, stm.type, Int]): Txn[NonEmptyChain[Point]] = {
               // we're going *back* from the route end:
               val startPoint = route.b
               val endPoint = route.a
-              TVar.of(List(startPoint)).flatMap { solutionVar =>
+              TVar.of(NonEmptyChain(startPoint)).flatMap { solutionVar =>
                 solutionVar.get.flatMap { solution =>
                   val adjacent = board.adjacentPoints(solution.head)
                   adjacent.traverse { a =>
@@ -130,7 +132,7 @@ object CatsStmSolver {
                   }.map { costs =>
                     costs.filter(_._2 != 0).minBy(_._2)
                   }.flatMap { lowestCost =>
-                    solutionVar.modify(lowestCost._1 :: _).as(lowestCost._1 == endPoint)
+                    solutionVar.modify(lowestCost._1 +: _).as(lowestCost._1 == endPoint)
                   }
                 }.iterateWhile(break => !break).flatMap { _ =>
                   solutionVar.get
@@ -138,7 +140,7 @@ object CatsStmSolver {
               }
             }
 
-            def lay(depth: TMatrix[F, stm.type, Int], solution: List[Point]): Txn[Unit] = {
+            def lay(depth: TMatrix[F, stm.type, Int], solution: NonEmptyChain[Point]): Txn[Unit] = {
               solution.traverse_ { point =>
                 depth(point.y, point.x).modify(_ + 1)
               }

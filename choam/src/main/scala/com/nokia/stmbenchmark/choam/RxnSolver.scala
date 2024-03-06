@@ -9,6 +9,7 @@ package choam
 
 import scala.concurrent.duration._
 
+import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
 import cats.effect.syntax.all._
 import cats.effect.Async
@@ -78,9 +79,10 @@ object RxnSolver {
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)
             solution <- solve(route, cost)
-            _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
+            solutionList = solution.toList
+            _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
             _ <- lay(depth, solution)
-          } yield solution
+          } yield solutionList
           reactive.applyAsync(act, null, runConfig)
         }
 
@@ -91,21 +93,21 @@ object RxnSolver {
           RefMatrix[Int](depth.height, depth.width, 0).flatMapF { cost =>
             cost(startPoint.y, startPoint.x).set.provide(1).flatMapF { _ =>
 
-              def go(wavefront: List[Point]): Axn[List[Point]] = {
-                val mkNewWf = wavefront.foldMapA[Axn, List[Point]] { point =>
+              def go(wavefront: Chain[Point]): Axn[Chain[Point]] = {
+                val mkNewWf = wavefront.foldMapM[Axn, Chain[Point]] { point =>
                   cost(point.y, point.x).get.flatMapF { pointCost =>
-                    board.adjacentPoints(point).foldMapA[Axn, List[Point]] { adjacent =>
+                    board.adjacentPoints(point).foldMapM[Axn, Chain[Point]] { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
-                        Rxn.pure(Nil)
+                        Rxn.pure(Chain.empty)
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           depth(adjacent.y, adjacent.x).get.flatMapF { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(adjacent :: Nil)
+                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(Chain(adjacent))
                             } else {
-                              Rxn.pure(Nil)
+                              Rxn.pure(Chain.empty)
                             }
                           }
                         }
@@ -123,7 +125,7 @@ object RxnSolver {
                         newWavefront.traverse { marked =>
                           cost(marked.y, marked.x).get
                         }.flatMapF { newCosts =>
-                          val minimumNewCost = newCosts.min
+                          val minimumNewCost = newCosts.minimumOption.get // TODO: partial function
                           if (costAtRouteEnd < minimumNewCost) {
                             // no new location has lower cost than the
                             // cost currently at the route end, so
@@ -143,16 +145,16 @@ object RxnSolver {
                 }
               }
 
-              go(List(startPoint)).as(cost)
+              go(Chain(startPoint)).as(cost)
             }
           }
         }
 
-        def solve(route: Route, cost: RefMatrix[Int]): Axn[List[Point]] = {
+        def solve(route: Route, cost: RefMatrix[Int]): Axn[NonEmptyChain[Point]] = {
           // we're going *back* from the route end:
           val startPoint = route.b
           val endPoint = route.a
-          Ref.unpadded(List(startPoint)).flatMap { solutionRef =>
+          Ref.unpadded(NonEmptyChain(startPoint)).flatMap { solutionRef =>
             solutionRef.get.flatMapF { solution =>
               val adjacent = board.adjacentPoints(solution.head)
               adjacent.traverse { a =>
@@ -160,7 +162,7 @@ object RxnSolver {
               }.map { costs =>
                 costs.filter(_._2 != 0).minBy(_._2)
               }.flatMapF { lowestCost =>
-                solutionRef.update(lowestCost._1 :: _).as(lowestCost._1 == endPoint)
+                solutionRef.update(lowestCost._1 +: _).as(lowestCost._1 == endPoint)
               }
             }.iterateWhile(break => !break).flatMap { _ =>
               solutionRef.get
@@ -168,7 +170,7 @@ object RxnSolver {
           }
         }
 
-        def lay(depth: RefMatrix[Int], solution: List[Point]): Axn[Unit] = {
+        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Axn[Unit] = {
           solution.traverse_ { point =>
             depth(point.y, point.x).update(_ + 1)
           }
