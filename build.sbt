@@ -111,7 +111,7 @@ lazy val commonSettings = Seq[Setting[_]](
     "-encoding", "UTF-8",
     "-language:higherKinds,experimental.macros",
     "-release", "11",
-    "-Xmigration:2.13.10",
+    "-Xmigration:2.13.13",
   ),
   scalacOptions ++= (
     if (!ScalaArtifacts.isScala3(scalaVersion.value)) {
@@ -200,7 +200,7 @@ lazy val jmhSettings = Seq[Setting[_]](
 lazy val dependencies = new {
 
   val catsVersion = "2.10.0"
-  val catsEffectVersion = "3.5.3"
+  val catsEffectVersion = "3.5.4"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.0.21"
   val choamVersion = "0.4-47850a5"
@@ -222,7 +222,7 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
-      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M3",
+      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M4",
     )
   }
 
