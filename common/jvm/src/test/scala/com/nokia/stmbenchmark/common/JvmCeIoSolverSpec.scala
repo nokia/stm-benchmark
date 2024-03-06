@@ -20,12 +20,13 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
   protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
     test(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
-        Board.fromResource[IO](resourceNameAndOpts.name).flatMap { board =>
+        val resourceName = resourceNameAndOpts.name
+        Board.fromResource[IO](resourceName).flatMap { board =>
           solver.solve(board.normalize()).flatMap { solution =>
             if (resourceNameAndOpts.tags.contains(Verbose)) {
-              printAndCheckSolution(board, solution)
+              printAndCheckSolution(resourceName, board, solution)
             } else {
-              checkSolution(board, solution)
+              checkSolution(resourceName, board, solution)
             }
           }
         }

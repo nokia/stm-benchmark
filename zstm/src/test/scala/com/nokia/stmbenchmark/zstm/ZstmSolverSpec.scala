@@ -37,11 +37,17 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     }
   }
 
-  protected def checkSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
-    ZIO.attempt { assert(board.isSolutionValid(solution.value))(loc) }
+  protected def checkSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] = {
+    debug(name + "\n" + Board.debugSolutionStats(solution, debug = true, indent = "  ")) *> (
+      ZIO.attempt { assert(board.isSolutionValid(solution.routes))(loc) }
+    )
+  }
 
-  protected def printAndCheckSolution(board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] =
-    debug(board.debugSolution(solution.value, debug = true)) *> checkSolution(board, solution)
+  protected def printAndCheckSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] = {
+    debug(board.debugSolution(solution.routes, debug = true)) *> (
+      checkSolution(name, board, solution)
+    )
+  }
 
   private def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
     testFromResource(resourceNameAndOpts = resourceName)(loc)
@@ -50,12 +56,13 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   private def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
     testZ(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
-        Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
+        val resourceName = resourceNameAndOpts.name
+        Board.fromResource[Task](resourceName).flatMap { board =>
           solver.solve(board.normalize()).flatMap { solution =>
             if (resourceNameAndOpts.tags.contains(Verbose)) {
-              printAndCheckSolution(board, solution)
+              printAndCheckSolution(resourceName, board, solution)
             } else {
-              checkSolution(board, solution)
+              checkSolution(resourceName, board, solution)
             }
           }
         }
@@ -81,7 +88,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
       )
       Board.fromStream(s).flatMap { board =>
         solver.solve(board.normalize(42L)).flatMap { solution =>
-          printAndCheckSolution(board, solution)
+          printAndCheckSolution("minimal.txt", board, solution)
         }
       }
     }

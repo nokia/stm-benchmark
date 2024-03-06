@@ -74,7 +74,6 @@ sealed abstract class AbstractBoard(
     ('A' to 'Z').concat('a' to 'z').toArray
   }
 
-
   def debugSolution(solution: Map[Route, List[Point]], debug: Boolean): String = {
     if (debug) {
       val arr = new Array[Char](width * height)
@@ -235,5 +234,22 @@ object Board extends BoardCompanionPlatform {
   def cost(depth: Int): Int = {
     require(depth >= 0)
     Math.pow(2.0, depth.toDouble).toInt
+  }
+
+  def debugSolutionStats(solution: Solver.Solution, debug: Boolean, indent: String): String = {
+    if (debug) {
+      val sb = new java.lang.StringBuilder()
+      sb.append(indent)
+      sb.append("total cost: ")
+      sb.append(solution.totalCost)
+      sb.append('\n')
+      sb.append(indent)
+      sb.append("max. depth: ")
+      sb.append(solution.maxDepth)
+      sb.append('\n')
+      sb.toString()
+    } else {
+      ""
+    }
   }
 }
