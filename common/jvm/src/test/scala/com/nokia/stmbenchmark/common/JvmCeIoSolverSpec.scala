@@ -13,20 +13,18 @@ import munit.{ Location, TestOptions }
 
 abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
-  protected def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
-    testFromResource(resourceNameAndOpts = resourceName)(loc)
-  }
-
   protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
     test(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
         val resourceName = resourceNameAndOpts.name
         Board.fromResource[IO](resourceName).flatMap { board =>
           solver.solve(board.normalize()).flatMap { solution =>
-            if (resourceNameAndOpts.tags.contains(Verbose)) {
-              printAndCheckSolution(resourceName, board, solution)
-            } else {
-              checkSolution(resourceName, board, solution)
+            IO {
+              checkSolutionInternal(
+                resourceNameAndOpts,
+                board,
+                solution,
+              )
             }
           }
         }

@@ -28,20 +28,8 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
   final override def munitIOTimeout =
     60.minutes
 
-  protected def checkSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] = {
-    debug(name + "\n" + Board.debugSolutionStats(solution, debug = true, indent = "  ")) *> (
-      assertTsk(board.isSolutionValid(solution.routes))
-    )
-  }
-
-  protected def printAndCheckSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): IO[Unit] = {
-    debug(board.debugSolution(solution.routes, debug = true)) *> (
-      checkSolution(name, board, solution)
-    )
-  }
-
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
-  test("minimal") {
+  test("minimal.txt") {
     createSolver.flatMap { solver =>
       val s = Stream[IO, String](
         List(
@@ -58,7 +46,13 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
       )
       Board.fromStream(s).flatMap { board =>
         solver.solve(board.normalize(42L)).flatMap { solution =>
-          printAndCheckSolution("minimal.txt", board, solution)
+          IO {
+            checkSolutionInternal(
+              "minimal.txt",
+              board,
+              solution,
+            )
+          }
         }
       }
     }

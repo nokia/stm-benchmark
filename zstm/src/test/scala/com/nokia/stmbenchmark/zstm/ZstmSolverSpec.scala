@@ -31,38 +31,23 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     }
   }
 
-  private def debug(msg: String): Task[Unit] = {
-    ZIO.consoleWith { console =>
-      console.printLine(msg)
-    }
-  }
-
-  protected def checkSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] = {
-    debug(name + "\n" + Board.debugSolutionStats(solution, debug = true, indent = "  ")) *> (
-      ZIO.attempt { assert(board.isSolutionValid(solution.routes))(loc) }
-    )
-  }
-
-  protected def printAndCheckSolution(name: String, board: Board, solution: Solver.Solution)(implicit loc: Location): Task[Unit] = {
-    debug(board.debugSolution(solution.routes, debug = true)) *> (
-      checkSolution(name, board, solution)
-    )
-  }
-
-  private def testFromResource(resourceName: String)(implicit loc: Location): Unit = {
-    testFromResource(resourceNameAndOpts = resourceName)(loc)
-  }
-
-  private def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
+  private def testFromResource(
+    resourceNameAndOpts: TestOptions,
+    expMaxDepth: Int = -1,
+    expTotalCost: Int = -1,
+  )(implicit loc: Location): Unit = {
     testZ(resourceNameAndOpts) {
       createSolver.flatMap { solver =>
-        val resourceName = resourceNameAndOpts.name
-        Board.fromResource[Task](resourceName).flatMap { board =>
+        Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
           solver.solve(board.normalize()).flatMap { solution =>
-            if (resourceNameAndOpts.tags.contains(Verbose)) {
-              printAndCheckSolution(resourceName, board, solution)
-            } else {
-              checkSolution(resourceName, board, solution)
+            ZIO.attempt {
+              checkSolutionInternal(
+                resourceNameAndOpts,
+                board,
+                solution,
+                expMaxDepth = expMaxDepth,
+                expTotalCost = expTotalCost,
+              )
             }
           }
         }
@@ -71,7 +56,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   }
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
-  testZ("minimal") {
+  testZ("minimal.txt") {
     createSolver.flatMap { solver =>
       val s = Stream[Task, String](
         List(
@@ -88,7 +73,15 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
       )
       Board.fromStream(s).flatMap { board =>
         solver.solve(board.normalize(42L)).flatMap { solution =>
-          printAndCheckSolution("minimal.txt", board, solution)
+          ZIO.attempt {
+            checkSolutionInternal(
+              "minimal.txt",
+              board,
+              solution,
+              expMaxDepth = 2,
+              expTotalCost = 24,
+            )
+          }
         }
       }
     }
