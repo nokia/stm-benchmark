@@ -151,7 +151,11 @@ object Benchmarks {
       0
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      CatsStmSolver[IO](txnLimit = this.txnLimitMultiplier * parLimit, parLimit = parLimit, log = false)
+      CatsStmSolver[IO](
+        txnLimit = this.txnLimitMultiplier.toLong * parLimit.toLong,
+        parLimit = parLimit,
+        log = false,
+      )
     }
   }
 
