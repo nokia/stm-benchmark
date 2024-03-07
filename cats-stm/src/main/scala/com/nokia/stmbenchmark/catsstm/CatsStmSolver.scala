@@ -124,20 +124,15 @@ object CatsStmSolver {
               // we're going *back* from the route end:
               val startPoint = route.b
               val endPoint = route.a
-              TVar.of(NonEmptyChain(startPoint)).flatMap { solutionVar =>
-                solutionVar.get.flatMap { solution =>
-                  val adjacent = board.adjacentPoints(solution.head)
-                  adjacent.traverse { a =>
-                    cost(a.y, a.x).get.map(a -> _)
-                  }.map { costs =>
-                    costs.filter(_._2 != 0).minBy(_._2)
-                  }.flatMap { lowestCost =>
-                    solutionVar.modify(lowestCost._1 +: _).as(lowestCost._1 == endPoint)
-                  }
-                }.iterateWhile(break => !break).flatMap { _ =>
-                  solutionVar.get
+              Txn.monadForTxn.iterateWhileM(NonEmptyChain(startPoint)) { solution =>
+                val adjacent = board.adjacentPoints(solution.head)
+                adjacent.traverse { a =>
+                  cost(a.y, a.x).get.map(a -> _)
+                }.map { costs =>
+                  val lowestCost = costs.filter(_._2 != 0).minBy(_._2)
+                  lowestCost._1 +: solution
                 }
-              }
+              } (p = { solution => solution.head != endPoint })
             }
 
             def lay(depth: TMatrix[F, stm.type, Int], solution: NonEmptyChain[Point]): Txn[Unit] = {

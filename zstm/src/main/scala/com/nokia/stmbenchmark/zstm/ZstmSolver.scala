@@ -118,8 +118,7 @@ object ZstmSolver {
               ZSTM.foreach(adjacent) { a =>
                 cost(a.y, a.x).map(a -> _)
               }.map { costs =>
-                costs.filter(_._2 != 0).minBy(_._2)
-              }.map { lowestCost =>
+                val lowestCost = costs.filter(_._2 != 0).minBy(_._2)
                 lowestCost._1 :: solution
               }
             }

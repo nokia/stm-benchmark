@@ -15,7 +15,7 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.{ Rxn, Axn, Ref }
+import dev.tauri.choam.{ Rxn, Axn }
 import dev.tauri.choam.async.AsyncReactive
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
@@ -154,20 +154,15 @@ object RxnSolver {
           // we're going *back* from the route end:
           val startPoint = route.b
           val endPoint = route.a
-          Ref.unpadded(NonEmptyChain(startPoint)).flatMap { solutionRef =>
-            solutionRef.get.flatMapF { solution =>
-              val adjacent = board.adjacentPoints(solution.head)
-              adjacent.traverse { a =>
-                cost(a.y, a.x).get.map(a -> _)
-              }.map { costs =>
-                costs.filter(_._2 != 0).minBy(_._2)
-              }.flatMapF { lowestCost =>
-                solutionRef.update(lowestCost._1 +: _).as(lowestCost._1 == endPoint)
-              }
-            }.iterateWhile(break => !break).flatMap { _ =>
-              solutionRef.get
+          Rxn.monadInstance.iterateWhileM(NonEmptyChain(startPoint)) { solution =>
+            val adjacent = board.adjacentPoints(solution.head)
+            adjacent.traverse { a =>
+              cost(a.y, a.x).get.map(a -> _)
+            }.map { costs =>
+              val lowestCost = costs.filter(_._2 != 0).minBy(_._2)
+              lowestCost._1 +: solution
             }
-          }
+          } (p = { solution => solution.head != endPoint })
         }
 
         def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Axn[Unit] = {
