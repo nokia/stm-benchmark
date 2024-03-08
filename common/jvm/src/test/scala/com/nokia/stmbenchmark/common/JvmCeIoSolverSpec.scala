@@ -13,20 +13,20 @@ import munit.{ Location, TestOptions }
 
 abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
-  // TODO: create one Solver, and reuse it for every test
+  private[this] lazy val solver: Solver[IO] =
+    this.createSolver.unsafeRunSync()
+
   protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
     test(resourceNameAndOpts) {
-      createSolver.flatMap { solver =>
-        val resourceName = resourceNameAndOpts.name
-        Board.fromResource[IO](resourceName).flatMap { board =>
-          solver.solve(board.normalize()).flatMap { solution =>
-            IO {
-              checkSolutionInternal(
-                resourceNameAndOpts,
-                board,
-                solution,
-              )
-            }
+      val resourceName = resourceNameAndOpts.name
+      Board.fromResource[IO](resourceName).flatMap { board =>
+        solver.solve(board.normalize()).flatMap { solution =>
+          IO {
+            checkSolutionInternal(
+              resourceNameAndOpts,
+              board,
+              solution,
+            )
           }
         }
       }

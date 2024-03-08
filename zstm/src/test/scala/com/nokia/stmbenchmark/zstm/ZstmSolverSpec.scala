@@ -25,9 +25,12 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   final override def munitTimeout =
     60.minutes
 
-  private def createSolver: Task[Solver[Task]] = {
-    ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
+  private[this] lazy val solver: Solver[Task] = {
+    val mkSolver = ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       ZstmSolver(parLimit = numCpu, log = false)
+    }
+    zio.Unsafe.unsafe { implicit u =>
+      this.runtime.unsafe.run(mkSolver).getOrThrow()
     }
   }
 
@@ -37,18 +40,16 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     expTotalCost: Int = -1,
   )(implicit loc: Location): Unit = {
     testZ(resourceNameAndOpts) {
-      createSolver.flatMap { solver =>
-        Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
-          solver.solve(board.normalize()).flatMap { solution =>
-            ZIO.attempt {
-              checkSolutionInternal(
-                resourceNameAndOpts,
-                board,
-                solution,
-                expMaxDepth = expMaxDepth,
-                expTotalCost = expTotalCost,
-              )
-            }
+      Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
+        solver.solve(board.normalize()).flatMap { solution =>
+          ZIO.attempt {
+            checkSolutionInternal(
+              resourceNameAndOpts,
+              board,
+              solution,
+              expMaxDepth = expMaxDepth,
+              expTotalCost = expTotalCost,
+            )
           }
         }
       }
@@ -57,31 +58,29 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
   testZ("minimal.txt") {
-    createSolver.flatMap { solver =>
-      val s = Stream[Task, String](
-        List(
-          "B 10 10",
-          "P 2 2",
-          "P 7 2",
-          "P 2 7",
-          "P 7 7",
-          "J 2 2 7 7",
-          "J 7 2 2 7",
-          "E",
-          "",
-        ).mkString("\n")
-      )
-      Board.fromStream(s).flatMap { board =>
-        solver.solve(board.normalize(42L)).flatMap { solution =>
-          ZIO.attempt {
-            checkSolutionInternal(
-              "minimal.txt".tag(Verbose),
-              board,
-              solution,
-              expMaxDepth = 2,
-              expTotalCost = 24,
-            )
-          }
+    val s = Stream[Task, String](
+      List(
+        "B 10 10",
+        "P 2 2",
+        "P 7 2",
+        "P 2 7",
+        "P 7 7",
+        "J 2 2 7 7",
+        "J 7 2 2 7",
+        "E",
+        "",
+      ).mkString("\n")
+    )
+    Board.fromStream(s).flatMap { board =>
+      solver.solve(board.normalize(42L)).flatMap { solution =>
+        ZIO.attempt {
+          checkSolutionInternal(
+            "minimal.txt".tag(Verbose),
+            board,
+            solution,
+            expMaxDepth = 2,
+            expTotalCost = 24,
+          )
         }
       }
     }
