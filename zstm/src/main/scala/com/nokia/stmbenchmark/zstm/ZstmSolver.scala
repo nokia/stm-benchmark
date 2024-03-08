@@ -138,9 +138,11 @@ object ZstmSolver {
             val tasks = board.routes.map { route =>
               solveOneRoute(depth, route).map(route -> _)
             }
-            val solveInParallel = ZIO.withParallelism(parLimit) {
-              ZIO.mergeAllPar(tasks)(zero = Map.empty[Route, List[Point]]) { (map, sol) =>
-                map + sol
+            val solveInParallel = if (parLimit == 1) {
+              ZIO.mergeAll(tasks)(zero = Map.empty[Route, List[Point]]) { _ + _ }
+            } else {
+              ZIO.withParallelism(parLimit) {
+                ZIO.mergeAllPar(tasks)(zero = Map.empty[Route, List[Point]]) { _ + _ }
               }
             }
             solveInParallel.flatMap { solution =>

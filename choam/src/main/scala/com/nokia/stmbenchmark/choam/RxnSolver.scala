@@ -176,8 +176,13 @@ object RxnSolver {
           w = board.width,
           initial = 0,
         ).run[F].flatMap { depth =>
-          val solveInParallel = board.routes.parTraverseN(parLimit) { route =>
+          val solveOne = { (route: Route) =>
             solveOneRoute(depth, route).map(route -> _)
+          }
+          val solveInParallel = if (parLimit == 1) {
+            board.routes.traverse(solveOne)
+          } else {
+            board.routes.parTraverseN(parLimit)(solveOne)
           }
           solveInParallel.flatMap { solutions =>
             val solution = Map(solutions: _*)

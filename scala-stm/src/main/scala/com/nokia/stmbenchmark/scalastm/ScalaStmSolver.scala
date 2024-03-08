@@ -140,7 +140,7 @@ object ScalaStmSolver {
                 (route, solution)
               }
             }
-            val solveInParallel = if (parLimit == 1) { // TODO: port this to other solvers
+            val solveInParallel = if (parLimit == 1) {
               board.routes.traverse(solveOne)
             } else {
               board.routes.parTraverseN(parLimit)(solveOne)
