@@ -29,7 +29,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
     60.minutes
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
-  test("minimal.txt") {
+  test("minimal.txt") { // TODO: run this small test repeatedly
     createSolver.flatMap { solver =>
       val s = Stream[IO, String](
         List(
@@ -48,7 +48,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
         solver.solve(board.normalize(42L)).flatMap { solution =>
           IO {
             checkSolutionInternal(
-              "minimal.txt",
+              "minimal.txt".tag(Verbose),
               board,
               solution,
             )

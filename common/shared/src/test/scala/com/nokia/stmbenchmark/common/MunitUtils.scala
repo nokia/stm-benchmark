@@ -67,7 +67,7 @@ trait MunitUtils { this: munit.FunSuite =>
       val minTc = 0.95 * expTc.toDouble
       this.assert(
         (solution.totalCost <= maxTc) && (solution.totalCost >= minTc),
-        s"totalCost should be between ${minTc} and ${maxTc}"
+        s"totalCost should be between ${minTc} and ${maxTc}, but was ${solution.totalCost}"
       )
     }
   }

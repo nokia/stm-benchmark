@@ -75,7 +75,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
         solver.solve(board.normalize(42L)).flatMap { solution =>
           ZIO.attempt {
             checkSolutionInternal(
-              "minimal.txt",
+              "minimal.txt".tag(Verbose),
               board,
               solution,
               expMaxDepth = 2,

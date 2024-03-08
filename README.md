@@ -31,12 +31,13 @@ Further reading:
 
 ## Tested STM implementations
 
-We've implemented the algorithm with various Scala STMs. We tried to use the exact same algorithm
-in every implementation, but didn't write intentionally unidiomatic code. The tested/measured
-STMs are as follows:
+We've implemented Lee's algorithm with various Scala STMs. We've tried to implement the algorithm
+as similar as reasonably possible in every implementation, but we didn't write (intentionally)
+unidiomatic code just to be more similar. The tested/measured STMs are as follows:
 
 - [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm).
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam) (technically not an STM, but close enough).
+- [ScalaSTM](https://github.com/scala-stm/scala-stm) in folder [scala-stm](/scala-stm)
 - [ZSTM](https://github.com/zio/zio/tree/series/2.x/core/shared/src/main/scala/zio/stm) in folder [zstm](/zstm).
 
 We also have a (baseline) sequential (non-parallelized) implementation of the same algorithm in folder

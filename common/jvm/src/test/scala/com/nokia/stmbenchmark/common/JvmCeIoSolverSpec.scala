@@ -13,6 +13,7 @@ import munit.{ Location, TestOptions }
 
 abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
+  // TODO: create one Solver, and reuse it for every test
   protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
     test(resourceNameAndOpts) {
       createSolver.flatMap { solver =>

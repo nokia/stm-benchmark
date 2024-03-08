@@ -29,6 +29,7 @@ lazy val stmBenchmark = project.in(file("."))
     catsStm,
     zstm,
     choam,
+    scalaStm,
   )
 
 lazy val common = crossProject(JVMPlatform, JSPlatform)
@@ -52,6 +53,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .dependsOn(catsStm)
   .dependsOn(zstm)
   .dependsOn(choam)
+  .dependsOn(scalaStm)
   .enablePlugins(JmhPlugin)
 
 lazy val sequential = project.in(file("sequential"))
@@ -94,6 +96,16 @@ lazy val choam = project.in(file("choam"))
   .dependsOn(common.jvm % "compile->compile;test->test")
   .settings(libraryDependencies ++= Seq(
     dependencies.choam.value,
+  ))
+
+lazy val scalaStm = project.in(file("scala-stm"))
+  .settings(name := "stm-benchmark-scala-stm")
+  .settings(commonSettings)
+  .settings(commonSettingsJvm)
+  .settings(publishArtifact := false)
+  .dependsOn(common.jvm % "compile->compile;test->test")
+  .settings(libraryDependencies ++= Seq(
+    dependencies.scalaStm.value,
   ))
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
@@ -226,12 +238,13 @@ lazy val dependencies = new {
     )
   }
 
-  // TODO: val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
+  val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
+  val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.1")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
   val zioMunit = Def.setting("com.github.poslegm" %% "munit-zio" % "0.2.0")
-  val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
+
 }
 
 addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")

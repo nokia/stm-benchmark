@@ -19,6 +19,7 @@ import common.{ Solver, Board }
 import catsstm.CatsStmSolver
 import zstm.ZstmSolver
 import choam.RxnSolver
+import scalastm.ScalaStmSolver
 import sequential.SequentialSolver
 
 @Fork(value = 3, jvmArgsAppend = Array("-Dcats.effect.tracing.mode=NONE"))
@@ -41,6 +42,11 @@ class Benchmarks {
 
   @Benchmark
   def rxn(st: RxnState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def scalaStm(st: ScalaStmState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -87,9 +93,9 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
 
-    @Param(Array("0", "4")) // 0 means default to availableProcessors()
+    @Param(Array("1", "4", "0")) // 0 means availableProcessors()
     private[this] var parLimit: Int =
-      0
+      -1
 
     private[this] var solveTask: IO[Solver.Solution] =
       null.asInstanceOf[IO[Solver.Solution]]
@@ -182,11 +188,19 @@ object Benchmarks {
   }
 
   @State(Scope.Benchmark)
+  class ScalaStmState extends IOState {
+
+    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
+      ScalaStmSolver[IO](parLimit = parLimit, log = false)
+    }
+  }
+
+  @State(Scope.Benchmark)
   class ZstmState extends AbstractState {
 
-    @Param(Array("0", "4")) // 0 means default to availableProcessors()
+    @Param(Array("1", "4", "0")) // 0 means availableProcessors()
     private[this] var parLimit: Int =
-      0
+      -1
 
     private[this] val runtime = {
       zio.Runtime(
