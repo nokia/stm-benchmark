@@ -155,6 +155,14 @@ object Board extends BoardCompanionPlatform {
     def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
       this.isSolutionValid(routes, solution)
     }
+
+    def restrict(rshift: Int): Normalized = {
+      val n = this.routes.size
+      val k = n >> rshift
+      require(k > 0)
+      require(k < n)
+      this.copy(routes = this.routes.take(k))
+    }
   }
 
   def empty(h: Int, w: Int): Board =
