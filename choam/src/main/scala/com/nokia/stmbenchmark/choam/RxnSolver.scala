@@ -7,8 +7,6 @@
 package com.nokia.stmbenchmark
 package choam
 
-import scala.concurrent.duration._
-
 import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
 import cats.effect.syntax.all._
@@ -16,37 +14,28 @@ import cats.effect.Async
 import cats.effect.std.Console
 
 import dev.tauri.choam.{ Rxn, Axn }
+import dev.tauri.choam.core.RetryStrategy
 import dev.tauri.choam.async.AsyncReactive
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
 object RxnSolver {
 
-  private[stmbenchmark] val spinStrategy: Rxn.Strategy.Spin =
-    Rxn.Strategy.Default
+  private[stmbenchmark] val spinStrategy: RetryStrategy.Spin =
+    RetryStrategy.Default
 
-  private[stmbenchmark] val cedeStrategy: Rxn.Strategy = {
-    Rxn.Strategy.cede(
-      maxRetries = Rxn.Strategy.Default.maxRetries,
-      maxSpin = Rxn.Strategy.Default.maxSpin,
-      randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
-    )
+  private[stmbenchmark] val cedeStrategy: RetryStrategy = {
+    RetryStrategy.Default.withRandomizeCede(true) // <- also sets maxCede to default
   }
 
-  private[stmbenchmark] val sleepStrategy: Rxn.Strategy = {
-    Rxn.Strategy.sleep(
-      maxRetries = Rxn.Strategy.Default.maxRetries,
-      maxSpin = Rxn.Strategy.Default.maxSpin,
-      randomizeSpin = Rxn.Strategy.Default.randomizeSpin,
-      maxSleep = 100.millis, // FIXME
-      randomizeSleep = true,
-    )
+  private[stmbenchmark] val sleepStrategy: RetryStrategy = {
+    RetryStrategy.Default.withRandomizeCede(true).withRandomizeSleep(true) // <- also sets maxSleep to default
   }
 
   def apply[F[_]](
     parLimit: Int,
     log: Boolean,
-    strategy: Rxn.Strategy = Rxn.Strategy.Default,
+    strategy: RetryStrategy = spinStrategy,
   )(implicit F: Async[F]): F[Solver[F]] = {
     F.pure(new Solver[F] {
 
@@ -56,7 +45,7 @@ object RxnSolver {
       private[this] val _c =
         Console.make[F]
 
-      private[this] val runConfig: Rxn.Strategy =
+      private[this] val runConfig: RetryStrategy =
         strategy
 
       private[this] final def debug(msg: String): Axn[Unit] = {
