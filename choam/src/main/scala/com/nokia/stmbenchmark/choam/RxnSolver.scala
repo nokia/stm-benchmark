@@ -24,26 +24,26 @@ object RxnSolver {
   private[stmbenchmark] val spinStrategy: RetryStrategy.Spin =
     RetryStrategy.Default
 
-  private[stmbenchmark] val cedeStrategy: RetryStrategy = {
-    RetryStrategy.Default.withRandomizeCede(true) // <- also sets maxCede to default
-  }
+  private[stmbenchmark] val cedeStrategy: RetryStrategy =
+    spinStrategy.withCede(true)
 
-  private[stmbenchmark] val sleepStrategy: RetryStrategy = {
-    RetryStrategy.Default.withRandomizeCede(true).withRandomizeSleep(true) // <- also sets maxSleep to default
-  }
+  private[stmbenchmark] val sleepStrategy: RetryStrategy =
+    cedeStrategy.withSleep(true)
 
   def apply[F[_]](
     parLimit: Int,
     log: Boolean,
     strategy: RetryStrategy = spinStrategy,
   )(implicit F: Async[F]): F[Solver[F]] = {
-    F.pure(new Solver[F] {
+    val cons = Console.make[F]
+    val debugStrategy = if (log) cons.println(strategy) else F.unit
+    debugStrategy *> F.pure(new Solver[F] {
 
       private[this] implicit val reactive: AsyncReactive[F] =
         AsyncReactive.forAsync[F]
 
       private[this] val _c =
-        Console.make[F]
+        cons
 
       private[this] val runConfig: RetryStrategy =
         strategy

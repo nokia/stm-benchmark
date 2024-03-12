@@ -16,7 +16,7 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
 
   override protected def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      RxnSolver[IO](parLimit = numCpu, log = false)
+      RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
     }
   }
 
