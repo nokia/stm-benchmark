@@ -94,9 +94,12 @@ lazy val choam = project.in(file("choam"))
   .settings(commonSettingsJvm)
   .settings(publishArtifact := false)
   .dependsOn(common.jvm % "compile->compile;test->test")
-  .settings(libraryDependencies ++= Seq(
-    dependencies.choam.value,
-  ))
+  .settings(
+    libraryDependencies ++= Seq(
+      dependencies.choam.value,
+    ),
+    Test / javaOptions += "-Ddev.tauri.choam.stats.mcas=true",
+  )
 
 lazy val scalaStm = project.in(file("scala-stm"))
   .settings(name := "stm-benchmark-scala-stm")
