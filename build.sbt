@@ -109,6 +109,7 @@ lazy val scalaStm = project.in(file("scala-stm"))
   .dependsOn(common.jvm % "compile->compile;test->test")
   .settings(libraryDependencies ++= Seq(
     dependencies.scalaStm.value,
+    dependencies.catsFree.value,
   ))
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
@@ -226,6 +227,7 @@ lazy val dependencies = new {
 
   val catsKernel = Def.setting("org.typelevel" %%% "cats-kernel" % catsVersion)
   val catsCore = Def.setting("org.typelevel" %%% "cats-core" % catsVersion)
+  val catsFree = Def.setting("org.typelevel" %%% "cats-free" % catsVersion)
   val catsEffectKernel = Def.setting("org.typelevel" %%% "cats-effect-kernel" % catsEffectVersion)
   val catsEffectStd = Def.setting("org.typelevel" %%% "cats-effect-std" % catsEffectVersion)
   val catsEffectAll = Def.setting("org.typelevel" %%% "cats-effect" % catsEffectVersion)

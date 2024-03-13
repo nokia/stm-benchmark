@@ -60,22 +60,22 @@ object CatsStmSolver {
               val startPoint = route.a
               val endPoint = route.b
 
-              TMatrix[F, stm.type, Int](stm)(depth.height, depth.width, 0).flatMap { cost =>
-                cost(startPoint.y, startPoint.x).set(1).flatMap { _ =>
+              TMatrix[F, stm.type, Int](stm)(h = depth.height, w = depth.width, 0).flatMap { cost =>
+                cost(row = startPoint.y, col = startPoint.x).set(1).flatMap { _ =>
 
                   def go(wavefront: Chain[Point]): Txn[Chain[Point]] = {
                     val mkNewWf = wavefront.foldMapM[Txn, Chain[Point]] { point =>
-                      cost(point.y, point.x).get.flatMap { pointCost =>
+                      cost(row = point.y, col = point.x).get.flatMap { pointCost =>
                         board.adjacentPoints(point).foldMapM[Txn, Chain[Point]] { adjacent =>
                           if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                             // can't go in that direction
                             stm.pure(Chain.empty)
                           } else {
-                            cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
-                              depth(adjacent.y, adjacent.x).get.flatMap { d =>
+                            cost(row = adjacent.y, col = adjacent.x).get.flatMap { currentCost =>
+                              depth(row = adjacent.y, col = adjacent.x).get.flatMap { d =>
                                 val newCost = pointCost + Board.cost(d)
                                 if ((currentCost == 0) || (newCost < currentCost)) {
-                                  cost(adjacent.y, adjacent.x).set(newCost).as(Chain(adjacent))
+                                  cost(row = adjacent.y, col = adjacent.x).set(newCost).as(Chain(adjacent))
                                 } else {
                                   stm.pure(Chain.empty)
                                 }
