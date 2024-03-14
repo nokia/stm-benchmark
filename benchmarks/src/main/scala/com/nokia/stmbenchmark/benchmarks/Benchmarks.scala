@@ -69,6 +69,10 @@ object Benchmarks {
     protected[this] var seed: Long =
       0L
 
+    @Param(Array("0", "1", "2"))
+    protected[this] var restrict: Int =
+      -1
+
     protected var normalizedBoard: Board.Normalized =
       null
 
@@ -83,7 +87,11 @@ object Benchmarks {
       val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
       try {
         val b = Board.fromResource[IO](this.board).unsafeRunSync()(setupRuntime)
-        this.normalizedBoard = b.normalize(this.seed)
+        val nb = b.normalize(this.seed)
+        this.normalizedBoard = this.restrict match {
+          case 0 => nb
+          case r => nb.restrict(r)
+        }
       } finally {
         setupRuntime.shutdown()
       }

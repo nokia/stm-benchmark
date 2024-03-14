@@ -49,16 +49,17 @@ because we'd like to compare it to similarly high-level and easy to use STMs.
 Benchmarks are in [`Benchmarks.scala`](benchmarks/src/main/scala/com/nokia/stmbenchmark/benchmarks/Benchmarks.scala).
 They can be configured with the following JMH parameters:
 
- - `board`: the input(s) are specified by this parameter, which is a filename to be loaded from classpath resources.
- - `seed`: before solving, the boards are "normalized" with a pseudorandom shuffle; this is the random seed to use.
+- `board`: the input(s) are specified by this parameter, which is a filename to be loaded from classpath resources.
+- `seed`: before solving, the boards are "normalized" with a pseudorandom shuffle; this is the random seed to use.
+- `restrict`: before solving, the boards are "restricted", i.e., some of the routes are removed from them. This
+  makes solving them easier (because there is less work, and also less change of conflicts). The value passed to
+  this parameter will be used to `>>` (right shift) the number of routes; e.g., `restrict=1` will remove approx.
+  half of the routes (chosed pseudorandomly based on `seed`). Defaults to `0`, i.e., do not restrict the board.
 
 The various parallel implementations are tunable with more parameters:
 
-- For all parallel implementations:
-   - `parLimit`: parallelism is limited to this value (e.g., with `parTraverseN`); defaults to
-   `Runtime.getRuntime().availableProcessors()`.
-- For Cats STM only:
-  - `txnLimitMultiplier`: we pass `txnLimitMultiplier * parLimit` to Cats STM as the number of transactions
-    that are allowed to evaluate concurrently (the `n` argument to `STM.runtime`).
-- For CHOAM only:
-  - `strategy`: the `Rxn.Strategy` to use for backoff (`spin | cede |sleep`).
+- `parLimit`: parallelism is limited to this value (e.g., with `parTraverseN`); defaults to
+  `Runtime.getRuntime().availableProcessors()`.
+- `txnLimitMultiplier` (Cats STM): we pass `txnLimitMultiplier * parLimit` to Cats STM as the number of transactions
+  that are allowed to evaluate concurrently (the `n` argument to `STM.runtime`).
+- `strategy` (CHOAM): the `Rxn.Strategy` to use for backoff (`spin | cede |sleep`).

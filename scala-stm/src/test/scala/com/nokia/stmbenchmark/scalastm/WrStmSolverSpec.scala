@@ -16,7 +16,7 @@ final class WrStmSolverSpec extends JvmCeIoSolverSpec {
 
   protected override def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      WrStmSolver[IO](parLimit = 2 * numCpu, log = false)
+      WrStmSolver[IO](parLimit = numCpu, log = false)
     }
   }
 

@@ -48,7 +48,7 @@ sealed abstract class AbstractBoard(
   }
 
   def isSolutionValid(routes: List[Route], solution: Map[Route, List[Point]]): Boolean = {
-    routes.traverse[Option, Unit] { r =>
+    (routes.size == solution.size) && routes.traverse[Option, Unit] { r =>
       solution.get(r) flatMap {
         case path @ (fst :: _ :: _) =>
           if ((fst == r.a) && (path.last == r.b)) {
@@ -157,6 +157,8 @@ object Board extends BoardCompanionPlatform {
     }
 
     def restrict(rshift: Int): Normalized = {
+      require(rshift > 0)
+      require(rshift < 32)
       val n = this.routes.size
       val k = n >> rshift
       require(k > 0)
@@ -247,6 +249,10 @@ object Board extends BoardCompanionPlatform {
   def debugSolutionStats(solution: Solver.Solution, debug: Boolean, indent: String): String = {
     if (debug) {
       val sb = new java.lang.StringBuilder()
+      sb.append(indent)
+      sb.append("routes:     ")
+      sb.append(solution.routes.size)
+      sb.append('\n')
       sb.append(indent)
       sb.append("total cost: ")
       sb.append(solution.totalCost)
