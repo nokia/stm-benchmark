@@ -69,7 +69,7 @@ object Benchmarks {
     protected[this] var seed: Long =
       0L
 
-    @Param(Array("0", "1", "2"))
+    @Param(Array("0", "1"))
     protected[this] var restrict: Int =
       -1
 
@@ -101,7 +101,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
 
-    @Param(Array("1", "4", "0")) // 0 means availableProcessors()
+    @Param(Array("0", "1", "32")) // 0 means availableProcessors()
     private[this] var parLimit: Int =
       -1
 
@@ -160,7 +160,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class CatsStmState extends IOState {
 
-    @Param(Array("1", "2", "4"))
+    @Param(Array("1", "4"))
     protected[this] var txnLimitMultiplier: Int =
       0
 
@@ -176,7 +176,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class RxnState extends IOState {
 
-    @Param(Array("spin", "cede", "sleep"))
+    @Param(Array("spin", /* "cede", */ "sleep"))
     protected[this] var strategy: String =
       null
 
@@ -206,7 +206,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class ZstmState extends AbstractState {
 
-    @Param(Array("1", "4", "0")) // 0 means availableProcessors()
+    @Param(Array("0", "1", "32")) // 0 means availableProcessors()
     private[this] var parLimit: Int =
       -1
 
