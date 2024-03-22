@@ -16,17 +16,21 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
   private[this] lazy val solver: Solver[IO] =
     this.createSolver.unsafeRunSync()
 
-  protected def testFromResource(resourceNameAndOpts: TestOptions)(implicit loc: Location): Unit = {
+  protected def testFromResource(
+    resourceNameAndOpts: TestOptions,
+    restrict: Int = 0,
+  )(implicit loc: Location): Unit = {
     test(resourceNameAndOpts) {
       val resourceName = resourceNameAndOpts.name
       Board.fromResource[IO](resourceName).flatMap { board =>
         // get back on the WSTP before starting the
         // solver (we'll hopefully not block any more):
-        IO.cede *> solver.solve(this.normalize(board)).flatMap { solution =>
+        val b = this.normalize(board).restrict(restrict)
+        IO.cede *> solver.solve(b).flatMap { solution =>
           IO {
             checkSolutionInternal(
               resourceNameAndOpts,
-              board,
+              b,
               solution,
             )
           }

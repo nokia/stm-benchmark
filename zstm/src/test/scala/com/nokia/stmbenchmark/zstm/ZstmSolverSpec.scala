@@ -47,16 +47,18 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
 
   private def testFromResource(
     resourceNameAndOpts: TestOptions,
+    restrict: Int = 0,
     expMaxDepth: Int = -1,
     expTotalCost: Int = -1,
   )(implicit loc: Location): Unit = {
     testZ(resourceNameAndOpts) {
       Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
-        solver.solve(this.normalize(board)).flatMap { solution =>
+        val b = this.normalize(board).restrict(restrict)
+        solver.solve(b).flatMap { solution =>
           ZIO.attempt {
             checkSolutionInternal(
               resourceNameAndOpts,
-              board,
+              b,
               solution,
               expMaxDepth = expMaxDepth,
               expTotalCost = expTotalCost,
@@ -83,11 +85,12 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
       ).mkString("\n")
     )
     Board.fromStream(s).flatMap { board =>
-      solver.solve(this.normalize(board)).flatMap { solution =>
+      val b = this.normalize(board)
+      solver.solve(b).flatMap { solution =>
         ZIO.attempt {
           checkSolutionInternal(
             "minimal.txt".tag(Verbose),
-            board,
+            b,
             solution,
             expMaxDepth = 2,
             expTotalCost = 24,

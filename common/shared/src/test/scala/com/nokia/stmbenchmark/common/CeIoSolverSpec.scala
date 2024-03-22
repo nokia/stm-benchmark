@@ -56,11 +56,12 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
         ).mkString("\n")
       )
       Board.fromStream(s).flatMap { board =>
-        solver.solve(this.normalize(board)).flatMap { solution =>
+        val b = this.normalize(board)
+        solver.solve(b).flatMap { solution =>
           IO {
             checkSolutionInternal(
               "minimal.txt".tag(Verbose),
-              board,
+              b,
               solution,
             )
           }

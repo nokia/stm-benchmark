@@ -84,6 +84,7 @@ final class BoardSpec extends CatsEffectSuite {
       10,
       pads = List(Point(2, 2), Point(7, 2), Point(2, 7), Point(7, 7)).sorted,
       routes = List(Route(Point(2, 2), Point(7, 7)), Route(Point(7, 2), Point(2, 7))),
+      restricted = 0,
     )
     val r = b.restrict(1) // halve routes
     val exp = Board.Normalized(
@@ -91,6 +92,7 @@ final class BoardSpec extends CatsEffectSuite {
       10,
       pads = List(Point(2, 2), Point(7, 2), Point(2, 7), Point(7, 7)).sorted,
       routes = List(Route(Point(2, 2), Point(7, 7))),
+      restricted = 1,
     )
     assertEquals(r, exp)
   }

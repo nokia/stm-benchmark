@@ -136,6 +136,7 @@ final case class Board(
       width = this.width,
       pads = this.pads.toList.sorted,
       routes = rnd.shuffle(this.routes.toList.sorted),
+      restricted = 0,
     )
   }
 }
@@ -150,6 +151,7 @@ object Board extends BoardCompanionPlatform {
     width: Int,
     pads: List[Point],
     routes: List[Route],
+    restricted: Int,
   ) extends AbstractBoard(height = height, width = width) {
 
     def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
@@ -157,13 +159,17 @@ object Board extends BoardCompanionPlatform {
     }
 
     def restrict(rshift: Int): Normalized = {
-      require(rshift > 0)
-      require(rshift < 32)
-      val n = this.routes.size
-      val k = n >> rshift
-      require(k > 0)
-      require(k < n)
-      this.copy(routes = this.routes.take(k))
+      if (rshift == 0) {
+        this
+      } else {
+        require(rshift > 0)
+        require(rshift < 32)
+        val n = this.routes.size
+        val k = n >> rshift
+        require(k > 0)
+        require(k < n)
+        this.copy(routes = this.routes.take(k), restricted = this.restricted + rshift)
+      }
     }
   }
 
