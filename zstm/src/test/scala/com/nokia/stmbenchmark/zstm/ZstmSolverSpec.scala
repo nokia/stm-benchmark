@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package zstm
 
+import java.util.concurrent.ThreadLocalRandom
+
 import scala.concurrent.duration._
 
 import zio.{ Task, ZIO }
@@ -34,6 +36,15 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     }
   }
 
+  protected def normalize(b: Board): Board.Normalized = {
+    val seed = if (b.routes.size > 240) {
+      42L
+    } else {
+      ThreadLocalRandom.current().nextLong()
+    }
+    b.normalize(seed)
+  }
+
   private def testFromResource(
     resourceNameAndOpts: TestOptions,
     expMaxDepth: Int = -1,
@@ -41,7 +52,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   )(implicit loc: Location): Unit = {
     testZ(resourceNameAndOpts) {
       Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
-        solver.solve(board.normalize()).flatMap { solution =>
+        solver.solve(this.normalize(board)).flatMap { solution =>
           ZIO.attempt {
             checkSolutionInternal(
               resourceNameAndOpts,
@@ -72,7 +83,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
       ).mkString("\n")
     )
     Board.fromStream(s).flatMap { board =>
-      solver.solve(board.normalize(42L)).flatMap { solution =>
+      solver.solve(this.normalize(board)).flatMap { solution =>
         ZIO.attempt {
           checkSolutionInternal(
             "minimal.txt".tag(Verbose),

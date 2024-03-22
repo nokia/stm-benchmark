@@ -22,7 +22,7 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
       Board.fromResource[IO](resourceName).flatMap { board =>
         // get back on the WSTP before starting the
         // solver (we'll hopefully not block any more):
-        IO.cede *> solver.solve(board.normalize()).flatMap { solution =>
+        IO.cede *> solver.solve(this.normalize(board)).flatMap { solution =>
           IO {
             checkSolutionInternal(
               resourceNameAndOpts,

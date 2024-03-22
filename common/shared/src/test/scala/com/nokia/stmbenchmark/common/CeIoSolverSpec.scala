@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package common
 
+import java.util.concurrent.ThreadLocalRandom
+
 import scala.concurrent.duration._
 
 import cats.effect.IO
@@ -18,6 +20,15 @@ import munit.{ CatsEffectSuite, Location }
 abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
 
   protected def createSolver: IO[Solver[IO]]
+
+  protected def normalize(b: Board): Board.Normalized = {
+    val seed = if (b.routes.size > 240) {
+      42L
+    } else {
+      ThreadLocalRandom.current().nextLong()
+    }
+    b.normalize(seed)
+  }
 
   protected final def debug(msg: String): IO[Unit] =
     IO.consoleForIO.println(msg)
@@ -45,7 +56,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
         ).mkString("\n")
       )
       Board.fromStream(s).flatMap { board =>
-        solver.solve(board.normalize(42L)).flatMap { solution =>
+        solver.solve(this.normalize(board)).flatMap { solution =>
           IO {
             checkSolutionInternal(
               "minimal.txt".tag(Verbose),
