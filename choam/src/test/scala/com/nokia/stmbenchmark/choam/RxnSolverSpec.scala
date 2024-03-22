@@ -25,5 +25,5 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparselong_micro.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt".ignore) // very long (approx. 20 mins), but works
+  testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 20 mins
 }

@@ -20,7 +20,12 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
     resourceNameAndOpts: TestOptions,
     restrict: Int = 0,
   )(implicit loc: Location): Unit = {
-    test(resourceNameAndOpts) {
+    val nameForMunit = if (restrict != 0) {
+      s"${resourceNameAndOpts.name} (restrict = ${restrict})"
+    } else {
+      resourceNameAndOpts.name
+    }
+    test(resourceNameAndOpts.withName(nameForMunit)) {
       val resourceName = resourceNameAndOpts.name
       Board.fromResource[IO](resourceName).flatMap { board =>
         // get back on the WSTP before starting the
