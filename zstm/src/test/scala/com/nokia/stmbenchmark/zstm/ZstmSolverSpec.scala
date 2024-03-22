@@ -51,7 +51,12 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     expMaxDepth: Int = -1,
     expTotalCost: Int = -1,
   )(implicit loc: Location): Unit = {
-    testZ(resourceNameAndOpts) {
+    val nameForMunit = if (restrict != 0) {
+      s"${resourceNameAndOpts.name} (restrict = ${restrict})"
+    } else {
+      resourceNameAndOpts.name
+    }
+    testZ(resourceNameAndOpts.withName(nameForMunit)) {
       Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
         val b = this.normalize(board).restrict(restrict)
         solver.solve(b).flatMap { solution =>
@@ -104,6 +109,6 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_micro.txt")
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt".ignore) // very long (approx. 55 mins), but works
-  testFromResource("mainboard.txt".ignore) // too long (more than 1 hour)
+  testFromResource("sparselong.txt", restrict = 3) // unrestricted takes approx. 55 mins
+  testFromResource("mainboard.txt", restrict = 7) // unrestricted is too long (more than 1 hour)
 }
