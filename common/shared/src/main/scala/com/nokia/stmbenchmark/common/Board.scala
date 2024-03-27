@@ -186,17 +186,21 @@ object Board extends BoardCompanionPlatform {
   final override def fromStream[F[_]](s: Stream[F, String])(implicit cF: Concurrent[F]): F[Board] = {
     val stream = s
       .through(text.lines)
-      .evalMap[F, (String, Seq[Int])] { line =>
+      .evalMapFilter[F, (String, Seq[Int])] { line =>
         line.split(' ') match {
           case Array(opcode, rest*) =>
-            rest.traverse { tok =>
-              cF.catchNonFatal(tok.toInt).handleErrorWith {
-                case _: NumberFormatException =>
-                  cF.raiseError(new FileFormatException(s"not an Int: $tok"))
-                case ex =>
-                  cF.raiseError(ex)
-              }
-            }.map(opcode -> _)
+            if (opcode != "#") {
+              rest.traverse { tok =>
+                cF.catchNonFatal(tok.toInt).handleErrorWith {
+                  case _: NumberFormatException =>
+                    cF.raiseError(new FileFormatException(s"not an Int: $tok"))
+                  case ex =>
+                    cF.raiseError(ex)
+                }
+              }.map { r => Some(opcode -> r) }
+            } else {
+              cF.pure(None)
+            }
           case _ =>
             cF.raiseError(new FileFormatException(s"invalid line: $line"))
         }

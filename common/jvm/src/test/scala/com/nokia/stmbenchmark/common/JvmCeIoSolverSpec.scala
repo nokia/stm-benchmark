@@ -43,24 +43,4 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
       }
     }
   }
-
-  // Included test resources:
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
-  // testFromResource("testBoard.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparseshort.txt
-  // testFromResource("sparseshort.txt")
-
-  // A very small version of sparselong.txt (see below):
-  // testFromResource("sparselong_micro.txt")
-
-  // A somewhat small version of sparselong.txt (see below):
-  // testFromResource("sparselong_mini.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparselong.txt
-  // testFromResource("sparselong.txt")
-
-  // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
-  // testFromResource("mainboard.txt")
 }

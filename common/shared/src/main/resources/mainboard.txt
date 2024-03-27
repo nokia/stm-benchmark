@@ -1,3 +1,7 @@
+# From https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/mainboard.txt
+# Originally from https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark
+# Originally from Spiers, T. D., and D. A. Edwards. "A high performance routing engine."
+#                 Proceedings of the 24th ACM/IEEE Design Automation Conference. 1987.
 B 600 600
 P 306 476
 P 306 480

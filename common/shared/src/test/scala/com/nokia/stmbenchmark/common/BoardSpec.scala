@@ -20,6 +20,13 @@ final class BoardSpec extends CatsEffectSuite {
     IO { this.assert(cond, clue)(loc) }
   }
 
+  private val expMinimal = Board(
+    10,
+    10,
+    pads = Set(Point(2, 2), Point(7, 2), Point(2, 7), Point(7, 7)),
+    routes = Set(Route(Point(2, 2), Point(7, 7)), Route(Point(7, 2), Point(2, 7))),
+  )
+
   test("Board.fromStream") {
     val s = Stream[IO, String](
       List(
@@ -35,15 +42,31 @@ final class BoardSpec extends CatsEffectSuite {
       ).mkString("\n")
     )
 
-    val exp = Board(
-      10,
-      10,
-      pads = Set(Point(2, 2), Point(7, 2), Point(2, 7), Point(7, 7)),
-      routes = Set(Route(Point(2, 2), Point(7, 7)), Route(Point(7, 2), Point(2, 7))),
+    Board.fromStream(s).flatMap { b =>
+      assertF(b == expMinimal)
+    }
+  }
+
+  test("Board.fromStream comment lines") {
+    val s = Stream[IO, String](
+      List(
+        "# this is a minimal board: ",
+        "B 10 10",
+        "P 2 2",
+        "P 7 2",
+        "P 2 7",
+        "P 7 7",
+        "# routes:",
+        "J 2 2 7 7",
+        "J 7 2 2 7",
+        "E",
+        "",
+        "# trailing comment line",
+      ).mkString("\n")
     )
 
     Board.fromStream(s).flatMap { b =>
-      assertF(b == exp)
+      assertF(b == expMinimal)
     }
   }
 

@@ -1,3 +1,4 @@
+# A small version of sparselong.txt, see there
 B 200 200
 P 10 10
 P 10 190

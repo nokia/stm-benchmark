@@ -1,3 +1,5 @@
+# From https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/testBoard.txt
+# Originally from https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark
 B 75 75
 P 8 1
 P 12 35

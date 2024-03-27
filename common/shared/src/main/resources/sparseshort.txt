@@ -1,3 +1,5 @@
+# From https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparseshort.txt
+# Originally from https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark
 B 600 600
 J 10 10 10 20
 J 10 30 10 40
