@@ -48,7 +48,11 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .settings(name := "stm-benchmark-benchmarks")
   .settings(commonSettings)
   .settings(commonSettingsJvm)
-  .settings(publishArtifact := false)
+  .settings(
+    publishArtifact := false,
+    Jmh / version := dependencies.jmhVersion,
+    Jmh / bspEnabled := false, // https://github.com/sbt/sbt-jmh/issues/193
+  )
   .dependsOn(sequential)
   .dependsOn(catsStm)
   .dependsOn(zstm)
@@ -206,11 +210,6 @@ lazy val commonSettings = Seq[Setting[_]](
        |SPDX-License-Identifier: Apache-2.0
        |""".stripMargin
   )),
-)
-
-lazy val jmhSettings = Seq[Setting[_]](
-  Jmh / version := dependencies.jmhVersion,
-  Jmh / bspEnabled := false, // https://github.com/sbt/sbt-jmh/issues/193
 )
 
 lazy val dependencies = new {
