@@ -7,8 +7,6 @@
 package com.nokia.stmbenchmark
 package benchmarks
 
-import java.util.concurrent.TimeUnit.HOURS
-
 import cats.effect.IO
 
 import zio.Task
@@ -22,10 +20,15 @@ import choam.RxnSolver
 import scalastm.ScalaStmSolver
 import sequential.SequentialSolver
 
-@Fork(value = 3, jvmArgsAppend = Array("-Dcats.effect.tracing.mode=NONE"))
+@Fork(value = 3, jvmArgsAppend = Array(
+  "-XX:+UseG1GC",
+  // "-XX:+UseZGC", "-XX:+ZGenerational",
+  // "-XX:+UseShenandoahGC",
+  "-Dcats.effect.tracing.mode=NONE",
+  "-Ddev.tauri.choam.stats.mcas=false",
+))
 @Threads(1) // because it runs on a thread-pool
 @BenchmarkMode(Array(Mode.AverageTime))
-@Timeout(time = 1, timeUnit = HOURS)
 class Benchmarks {
 
   import Benchmarks._
