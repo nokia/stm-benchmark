@@ -102,7 +102,7 @@ lazy val choam = project.in(file("choam"))
     libraryDependencies ++= Seq(
       dependencies.choam.value,
     ),
-    Test / javaOptions += "-Ddev.tauri.choam.stats.mcas=true",
+    Test / javaOptions += "-Ddev.tauri.choam.stats=true",
   )
 
 lazy val scalaStm = project.in(file("scala-stm"))
@@ -218,7 +218,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.4"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.0.21"
-  val choamVersion = "0.4-0f837a7"
+  val choamVersion = "0.4-1e6e53a"
   val fs2Version = "3.10.2"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
