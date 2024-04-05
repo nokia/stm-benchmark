@@ -27,6 +27,7 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
   testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 12 mins
+  testFromResource("memboard.txt", restrict = 2) // unrestricted takes approx. 6 mins
 
   override def afterEach(context: AfterEach): Unit = {
     printJmxInfo()

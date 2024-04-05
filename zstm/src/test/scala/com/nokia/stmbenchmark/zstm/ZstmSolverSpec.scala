@@ -110,5 +110,6 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   testFromResource("sparselong_micro.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt", restrict = 3) // unrestricted takes approx. 55 mins
-  testFromResource("mainboard.txt", restrict = 7) // unrestricted is too long (more than 1 hour)
+  testFromResource("mainboard.txt", restrict = 7) // unrestricted takes too long (more than 1 hour)
+  testFromResource("memboard.txt", restrict = 5) // unrestricted takes too long (more than 1 hour)
 }

@@ -21,7 +21,7 @@ trait MunitUtils { this: munit.FunSuite =>
     "sparselong_mini.txt" -> (DontCare, DontCare), // TODO
     "sparselong.txt" -> (1, 16849),
     "mainboard.txt" -> (3, 174128),
-    "memboard.txt" -> (3, 162917), // TODO
+    "memboard.txt" -> (3, 162917),
   )
 
   protected val Verbose = new Tag("Verbose")

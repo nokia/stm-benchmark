@@ -23,4 +23,5 @@ final class SequentialSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
   testFromResource("mainboard.txt")
+  testFromResource("memboard.txt")
 }
