@@ -217,8 +217,8 @@ lazy val dependencies = new {
   val catsVersion = "2.10.0"
   val catsEffectVersion = "3.5.4"
   val catsStmVersion = "0.13.4"
-  val zioVersion = "2.0.21"
-  val choamVersion = "0.4-1e6e53a"
+  val zioVersion = "2.0.22"
+  val choamVersion = "0.4-fedb51e"
   val fs2Version = "3.10.2"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
@@ -238,14 +238,14 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
-      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M4",
+      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M5",
     )
   }
 
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
-  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.1")
+  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.2")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
   val zioMunit = Def.setting("com.github.poslegm" %% "munit-zio" % "0.2.0")
 }
