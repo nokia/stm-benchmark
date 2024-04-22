@@ -214,41 +214,11 @@ object Benchmarks {
       -1
 
     private[this] val runtime: zio.Runtime[Any] = {
-      val rt = zio.Runtime(
+      zio.Runtime(
         zio.ZEnvironment.empty,
         zio.FiberRefs.empty,
         zio.RuntimeFlags.disable(zio.RuntimeFlags.default)(zio.RuntimeFlag.FiberRoots),
       )
-      // We shut down the "ZScheduler-Supervisor" thread,
-      // because `autoBlocking` seems to hurt performance.
-      // (We could create a separate `ZScheduler`, with
-      // `autoBlocking = false`, but we have no way of
-      // shutting down the default runtime, so we'd end
-      // up with 2 threadpools, which we also don't want.)
-      @tailrec
-      def getRootTg(tg: ThreadGroup): ThreadGroup = {
-        tg.getParent() match {
-          case null =>
-            tg
-          case parent =>
-            getRootTg(parent)
-        }
-      }
-      @tailrec
-      def getAllThreads(root: ThreadGroup, size: Int): Array[Thread] = {
-        val arr = new Array[Thread](size)
-        val n = root.enumerate(arr)
-        if (n < size) java.util.Arrays.copyOf(arr, n)
-        else getAllThreads(root, size * 2)
-      }
-      val threads = getAllThreads(getRootTg(Thread.currentThread().getThreadGroup()), size = 32)
-      for (t <- threads) {
-        if (t.getName() == "ZScheduler-Supervisor") {
-          t.interrupt()
-        }
-      }
-      // okay, now it effectively behaves the same as if `autoBlocking = false`
-      rt
     }
 
     private[this] var solveTask: Task[Solver.Solution] =
