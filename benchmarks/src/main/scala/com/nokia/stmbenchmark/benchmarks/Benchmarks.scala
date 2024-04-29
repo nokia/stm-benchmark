@@ -64,7 +64,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class AbstractState {
 
-    @Param(Array("testBoard.txt", "sparselong_mini.txt"))
+    @Param(Array("testBoard.txt", "sparselong_mini.txt", "sparseshort_mini.txt"))
     protected[this] var board: String =
       null
 
@@ -163,7 +163,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class CatsStmState extends IOState {
 
-    @Param(Array("1", "4"))
+    @Param(Array(/* "1", */ "4"))
     protected[this] var txnLimitMultiplier: Int =
       0
 
@@ -179,7 +179,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class RxnState extends IOState {
 
-    @Param(Array("spin", /* "cede", */ "sleep"))
+    @Param(Array(/* "spin", "cede", */ "sleep"))
     protected[this] var strategy: String =
       null
 
