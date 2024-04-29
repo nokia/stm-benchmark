@@ -1,4 +1,6 @@
-# A small version of sparselong.txt, see there
+# A small version of sparselong.txt, which is
+# From https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/sparselong.txt
+# Originally from https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark
 B 200 200
 P 10 10
 P 10 190

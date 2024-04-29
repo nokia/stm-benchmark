@@ -17,7 +17,6 @@ trait MunitUtils { this: munit.FunSuite =>
     "minimal.txt" -> (2, 24),
     "testBoard.txt" -> (3, 3307),
     "sparseshort.txt" -> (1, 9251),
-    "sparselong_micro.txt" -> (DontCare, DontCare), // TODO
     "sparselong_mini.txt" -> (DontCare, DontCare), // TODO
     "sparselong.txt" -> (1, 16849),
     "mainboard.txt" -> (3, 174128),
