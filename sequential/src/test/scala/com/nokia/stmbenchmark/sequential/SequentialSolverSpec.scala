@@ -18,6 +18,7 @@ final class SequentialSolverSpec extends JvmCeIoSolverSpec {
     SequentialSolver[IO](log = false)
 
   testFromResource("testBoard.txt".tag(Verbose))
+  testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")

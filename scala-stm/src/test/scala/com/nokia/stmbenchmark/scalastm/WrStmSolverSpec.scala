@@ -21,6 +21,7 @@ final class WrStmSolverSpec extends JvmCeIoSolverSpec {
   }
 
   testFromResource("testBoard.txt".tag(Verbose))
+  testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
