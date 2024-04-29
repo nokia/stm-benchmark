@@ -17,7 +17,7 @@ import common.{ Solver, Board }
 import catsstm.CatsStmSolver
 import zstm.ZstmSolver
 import choam.RxnSolver
-import scalastm.ScalaStmSolver
+import scalastm.{ ScalaStmSolver, WrStmSolver }
 import sequential.SequentialSolver
 
 @Fork(value = 3, jvmArgsAppend = Array(
@@ -50,6 +50,11 @@ class Benchmarks {
 
   @Benchmark
   def scalaStm(st: ScalaStmState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def wrStm(st: WrStmState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -203,6 +208,14 @@ object Benchmarks {
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       ScalaStmSolver[IO](parLimit = parLimit, log = false)
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class WrStmState extends IOState {
+
+    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
+      WrStmSolver[IO](parLimit = parLimit, log = false)
     }
   }
 
