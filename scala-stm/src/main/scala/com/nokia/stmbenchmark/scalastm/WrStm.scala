@@ -32,19 +32,19 @@ object WrStm {
     Free.pure(a)
 
   def newTMatrix[A](h: Int, w: Int, init: A): WrStm[TMatrix[A]] =
-    Free.liftF(NewTMatrix(h = h, w = w, init = init))
+    Free.liftF[WrStmA, TMatrix[A]](NewTMatrix(h = h, w = w, init = init))
 
   def getTm[A](tm: TMatrix[A], row: Int, col: Int): WrStm[A] =
-    Free.liftF(GetTm(tm = tm, row = row, col = col))
+    Free.liftF[WrStmA, A](GetTm(tm = tm, row = row, col = col))
 
   def setTm[A](tm: TMatrix[A], row: Int, col: Int, nv: A): WrStm[Unit] =
-    Free.liftF(SetTm(tm = tm, row = row, col = col, nv = nv))
+    Free.liftF[WrStmA, Unit](SetTm(tm = tm, row = row, col = col, nv = nv))
 
-  def modTm[A](tm: TMatrix[A], row: Int, col: Int, f: A => A): WrStm[Unit] =
-    Free.liftF(ModTm(tm = tm, row = row, col = col, f = f))
+  def modTm[A](tm: TMatrix[A], row: Int, col: Int)(f: A => A): WrStm[Unit] =
+    Free.liftF[WrStmA, Unit](ModTm(tm = tm, row = row, col = col, f = f))
 
   def debugTm[A](tm: TMatrix[A], debug: Boolean)(implicit show: Show[A]): WrStm[String] =
-    Free.liftF(DebugTm(tm = tm, debug = debug, show = show))
+    Free.liftF[WrStmA, String](DebugTm(tm = tm, debug = debug, show = show))
 
   def raiseError[A](ex: Throwable): WrStm[A] =
     Free.liftF(Raise(ex))

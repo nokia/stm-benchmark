@@ -132,7 +132,7 @@ object WrStmSolver {
 
           def lay(depth: TMatrix[Int], solution: NonEmptyChain[Point]): WrStm[Unit] = {
             solution.traverse_ { point =>
-              WrStm.modTm(depth, row = point.y, col = point.x, f = { _ + 1 })
+              WrStm.modTm(depth, row = point.y, col = point.x) { _ + 1 }
             }
           }
 
