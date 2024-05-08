@@ -238,7 +238,7 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
-      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M5",
+      "org.typelevel" %%% "munit-cats-effect" % "2.0.0-RC1",
     )
   }
 
