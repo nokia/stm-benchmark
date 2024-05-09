@@ -5,7 +5,7 @@
  */
 
 // Scala versions:
-val scala2 = "2.13.13"
+val scala2 = "2.13.14"
 val scala3 = "3.3.3"
 
 val TestInternal = "test-internal"
@@ -89,7 +89,6 @@ lazy val zstm = project.in(file("zstm"))
   .settings(libraryDependencies ++= Seq(
     dependencies.zioStm.value,
     dependencies.zioCats.value,
-    dependencies.zioMunit.value % TestInternal,
   ))
 
 lazy val choam = project.in(file("choam"))
@@ -217,8 +216,8 @@ lazy val dependencies = new {
   val catsVersion = "2.10.0"
   val catsEffectVersion = "3.5.4"
   val catsStmVersion = "0.13.4"
-  val zioVersion = "2.1.0-RC5"
-  val choamVersion = "0.4-2f0bba3"
+  val zioVersion = "2.1.0"
+  val choamVersion = "0.4-23f772a"
   val fs2Version = "3.10.2"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
@@ -247,7 +246,6 @@ lazy val dependencies = new {
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.2")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
-  val zioMunit = Def.setting("com.github.poslegm" %% "munit-zio" % "0.2.0")
 }
 
 addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")

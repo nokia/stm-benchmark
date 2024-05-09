@@ -17,15 +17,18 @@ import zio.interop.catz.asyncInstance
 import fs2.Stream
 
 import munit.{ Location, TestOptions }
-import munit.ZSuite
+import munit.FunSuite
 
 import common.{ Board, Solver }
 import common.MunitUtils
 
-final class ZstmSolverSpec extends ZSuite with MunitUtils {
+final class ZstmSolverSpec extends FunSuite with MunitUtils {
 
   final override def munitTimeout =
     60.minutes
+
+  private[this] val runtime: zio.Runtime[Any] =
+    zio.Runtime.default
 
   private[this] lazy val solver: Solver[Task] = {
     val mkSolver = ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
@@ -34,6 +37,16 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     zio.Unsafe.unsafe { implicit u =>
       this.runtime.unsafe.run(mkSolver).getOrThrow()
     }
+  }
+
+  @scala.annotation.nowarn("cat=unchecked")
+  override def munitValueTransforms: List[ValueTransform] = {
+    new ValueTransform("zio.Task", {
+      case tsk: zio.Task[_] =>
+        zio.Unsafe.unsafe { implicit u =>
+          this.runtime.unsafe.runToFuture(tsk)
+        }
+    }) :: super.munitValueTransforms
   }
 
   protected def normalize(b: Board): Board.Normalized = {
@@ -56,7 +69,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
     } else {
       resourceNameAndOpts.name
     }
-    testZ(resourceNameAndOpts.withName(nameForMunit)) {
+    test(resourceNameAndOpts.withName(nameForMunit)) {
       Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
         val b = this.normalize(board).restrict(restrict)
         solver.solve(b).flatMap { solution =>
@@ -75,7 +88,7 @@ final class ZstmSolverSpec extends ZSuite with MunitUtils {
   }
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
-  testZ("minimal.txt") {
+  test("minimal.txt") {
     val s = Stream[Task, String](
       List(
         "B 10 10",
