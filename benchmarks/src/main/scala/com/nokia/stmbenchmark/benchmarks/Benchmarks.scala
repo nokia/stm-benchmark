@@ -77,7 +77,7 @@ object Benchmarks {
     protected[this] var seed: Long =
       0L
 
-    @Param(Array("0", "1"))
+    @Param(Array("3", "2", "1", "0"))
     protected[this] var restrict: Int =
       -1
 

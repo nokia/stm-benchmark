@@ -27,8 +27,13 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
   final override def munitTimeout =
     60.minutes
 
-  private[this] val runtime: zio.Runtime[Any] =
-    zio.Runtime.default
+  private[this] val runtime: zio.Runtime[Any] = {
+    zio.Runtime(
+      zio.ZEnvironment.empty,
+      zio.FiberRefs.empty,
+      zio.RuntimeFlags.disable(zio.RuntimeFlags.default)(zio.RuntimeFlag.FiberRoots),
+    )
+  }
 
   private[this] lazy val solver: Solver[Task] = {
     val mkSolver = ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
