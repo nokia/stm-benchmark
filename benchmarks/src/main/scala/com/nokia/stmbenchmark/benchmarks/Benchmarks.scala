@@ -25,7 +25,7 @@ import sequential.SequentialSolver
   // "-XX:+UseZGC", "-XX:+ZGenerational",
   // "-XX:+UseShenandoahGC",
   "-Dcats.effect.tracing.mode=NONE",
-  "-Ddev.tauri.choam.stats.mcas=false",
+  "-Ddev.tauri.choam.stats=false",
 ))
 @Threads(1) // because it runs on a thread-pool
 @BenchmarkMode(Array(Mode.AverageTime))

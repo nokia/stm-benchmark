@@ -52,6 +52,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
     publishArtifact := false,
     Jmh / version := dependencies.jmhVersion,
     Jmh / bspEnabled := false, // https://github.com/sbt/sbt-jmh/issues/193
+    libraryDependencies += dependencies.choamProfiler.value,
   )
   .dependsOn(sequential)
   .dependsOn(catsStm)
@@ -217,7 +218,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.4"
   val catsStmVersion = "0.13.4"
   val zioVersion = "2.1.1"
-  val choamVersion = "0.4-e3b8e88"
+  val choamVersion = "0.4-2ac4dad"
   val fs2Version = "3.10.2"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
@@ -243,6 +244,7 @@ lazy val dependencies = new {
 
   val catsStm = Def.setting("io.github.timwspence" %%% "cats-stm" % catsStmVersion)
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
+  val choamProfiler = Def.setting("dev.tauri" %%% "choam-profiler" % choamVersion)
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.2")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
