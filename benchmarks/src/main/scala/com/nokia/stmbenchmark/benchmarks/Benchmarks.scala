@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package benchmarks
 
+import scala.annotation.nowarn
+
 import cats.effect.IO
 
 import zio.Task
@@ -109,8 +111,14 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class IOState extends AbstractState {
 
-    @Param(Array("0", "1", "32")) // 0 means availableProcessors()
+    @Param(Array("0")) // 0 means availableProcessors()
+    @nowarn("msg=unset private variable")
     private[this] var parLimit: Int =
+      -1
+
+    @Param(Array("1"))
+    @nowarn("msg=unset private variable")
+    private[this] var parLimitMultiplier: Int =
       -1
 
     private[this] var solveTask: IO[Solver.Solution] =
@@ -137,8 +145,10 @@ object Benchmarks {
         case pl =>
           pl
       }
-      this.parLimit = pl
-      val solver = unsafeRunSync(this.mkSolver(pl))
+      val plm = this.parLimitMultiplier
+      val n = pl * plm
+      require(n > 0)
+      val solver = unsafeRunSync(this.mkSolver(n))
       this.solveTask = IO.cede *> solver.solve(this.normalizedBoard)
     }
   }
@@ -168,13 +178,9 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class CatsStmState extends IOState {
 
-    @Param(Array(/* "1", */ "4"))
-    protected[this] var txnLimitMultiplier: Int =
-      0
-
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       CatsStmSolver[IO](
-        txnLimit = this.txnLimitMultiplier.toLong * parLimit.toLong,
+        txnLimit = parLimit.toLong,
         parLimit = parLimit,
         log = false,
       )
@@ -222,8 +228,14 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class ZstmState extends AbstractState {
 
-    @Param(Array("0", "1", "32")) // 0 means availableProcessors()
+    @Param(Array("0")) // 0 means availableProcessors()
+    @nowarn("msg=unset private variable")
     private[this] var parLimit: Int =
+      -1
+
+    @Param(Array("1"))
+    @nowarn("msg=unset private variable")
+    private[this] var parLimitMultiplier: Int =
       -1
 
     private[this] val runtime: zio.Runtime[Any] = {
@@ -257,8 +269,10 @@ object Benchmarks {
         case pl =>
           pl
       }
-      this.parLimit = pl
-      val solver = unsafeRunSync(ZstmSolver(parLimit = pl, log = false))
+      val plm = this.parLimitMultiplier
+      val n = pl * plm
+      require(n > 0)
+      val solver = unsafeRunSync(ZstmSolver(parLimit = n, log = false))
       this.solveTask = zio.ZIO.yieldNow *> solver.solve(this.normalizedBoard)
     }
   }
