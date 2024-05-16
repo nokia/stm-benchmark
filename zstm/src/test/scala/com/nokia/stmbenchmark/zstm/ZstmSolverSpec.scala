@@ -25,7 +25,7 @@ import common.MunitUtils
 final class ZstmSolverSpec extends FunSuite with MunitUtils {
 
   final override def munitTimeout =
-    60.minutes
+    180.minutes
 
   private[this] val runtime: zio.Runtime[Any] = {
     zio.Runtime(
@@ -127,7 +127,7 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt", restrict = 3) // unrestricted takes approx. 55 mins
-  testFromResource("mainboard.txt", restrict = 7) // unrestricted takes too long (more than 1 hour)
-  testFromResource("memboard.txt", restrict = 5) // unrestricted takes too long (more than 1 hour)
+  testFromResource("sparselong.txt", restrict = 3) // unrestricted takes approx. 50 mins
+  testFromResource("mainboard.txt", restrict = 7) // unrestricted takes almost 3 hours
+  testFromResource("memboard.txt", restrict = 5) // unrestricted takes almost 2 hours
 }

@@ -38,12 +38,14 @@ for each implementation):
 
 - [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm).
   - We run the Cats STM transactions on a Cats Effect runtime, which they're designed to run on.
+  - We disable tracing in the runtime, to avoid the negative performance impact.
   - Cats STM doesn't have a built-in `TArray` or similar type, so we use `Array[TVar[A]]` for the
     board matrices.
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam)
   - This is technically not an STM, but close enough (this algorithm doesn't require
     _everything_ from an STM, e.g., there is no need for the `orElse` combinator).
   - We run the `Rxn`s on a Cats Effect runtime, which they're designed to run on.
+  - We disable tracing in the runtime, to avoid the negative performance impact.
   - For the board matrices we use the built-in `Ref.array` in CHOAM.
 - [ScalaSTM](https://github.com/scala-stm/scala-stm) in folder [scala-stm](/scala-stm)
   - We've implemented 2 versions:
@@ -56,16 +58,19 @@ for each implementation):
     ScalaSTM sometimes blocks threads, but does this by using `scala.concurrent.BlockContext`,
     which is supported by the Cats Effect runtime (it starts compensating threads as necessary),
     so this should be fine (although not ideal; but performance seems fine).
+  - We disable tracing in the runtime, to avoid the negative performance impact.
   - We use ScalaSTM's `TArray` for the board matrices.
 - [ZSTM](https://github.com/zio/zio/tree/series/2.x/core/shared/src/main/scala/zio/stm) in folder [zstm](/zstm).
   - We run the ZSTM transactions on their own `zio.Runtime`, which they seem designed for.
+  - We disable `FiberRoots` in the runtime, to avoid the negative performance impact.
   - We use ZSTM's `TArray` for the board matrices.
 
 Some general remarks:
 
 - The transactions in these implementations of Lee’s routing algorithm are read heavy,
-  but at the end they always write to some locations (to lay a route). So read-only
-  transactions are not tested/measured.
+  but at the end they always write to some locations (to lay a route). This means that
+  read-only transactions, and transactions which only access a very small number of
+  `TVar`s are not tested/measured.
 - We also have a (baseline) sequential (non-parallelized) implementation of the same algorithm in folder
   [sequential](/sequential). This sequential implementation is intentionally not very well optimized,
   because we'd like to compare it to similarly high-level and easy to use STMs.
@@ -80,7 +85,7 @@ They can be configured with the following JMH parameters:
 - `restrict` (`Int`): before solving, the boards are "restricted", i.e., some of the routes are removed from them. This
   makes solving them easier (because there is less work, and also less change of conflicts). The value passed to
   this parameter will be used to `>>` (right shift) the number of routes; e.g., `restrict=1` will remove approx.
-  half of the routes. (The routes to remove are chosed pseudorandomly based on `seed`.)
+  half of the routes. (The routes to remove are chosen pseudorandomly based on `seed`.)
 
 The various parallel implementations are tunable with more parameters:
 
