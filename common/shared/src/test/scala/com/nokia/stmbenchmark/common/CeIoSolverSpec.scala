@@ -36,7 +36,7 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
   protected final def assertTsk(cond: Boolean)(implicit loc: Location): IO[Unit] =
     IO(assert(cond)(loc))
 
-  final override def munitIOTimeout =
+  override def munitIOTimeout =
     60.minutes
 
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt

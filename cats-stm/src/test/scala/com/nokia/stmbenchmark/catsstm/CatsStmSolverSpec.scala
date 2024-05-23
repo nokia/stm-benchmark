@@ -7,12 +7,17 @@
 package com.nokia.stmbenchmark
 package catsstm
 
+import scala.concurrent.duration._
+
 import cats.effect.IO
 
 import common.JvmCeIoSolverSpec
 import common.Solver
 
 final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
+
+  final override def munitIOTimeout =
+    180.minutes
 
   protected override def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
@@ -24,7 +29,7 @@ final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt", restrict = 2) // unrestricted takes approx. 10 mins
-  testFromResource("mainboard.txt", restrict = 5) // unrestricted takes too long (more than 1 hour)
-  testFromResource("memboard.txt", restrict = 4) // unrestricted takes too long (more than 1 hour)
+  testFromResource("sparselong.txt", restrict = 2) // unrestricted takes approx. 7 mins
+  testFromResource("mainboard.txt", restrict = 5) // unrestricted takes approx. 1h 20m
+  testFromResource("memboard.txt", restrict = 4) // unrestricted takes approx. 55 mins
 }
