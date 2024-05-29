@@ -30,6 +30,7 @@ lazy val stmBenchmark = project.in(file("."))
     zstm,
     choam,
     scalaStm,
+    arrowStm,
   )
 
 lazy val common = crossProject(JVMPlatform, JSPlatform)
@@ -115,6 +116,23 @@ lazy val scalaStm = project.in(file("scala-stm"))
     dependencies.scalaStm.value,
     dependencies.catsFree.value,
   ))
+
+lazy val arrowStm = project.in(file("arrow-stm"))
+  .settings(name := "stm-benchmark-arrow-stm")
+  .settings(commonSettings)
+  .settings(commonSettingsJvm)
+  .settings(publishArtifact := false)
+  .dependsOn(common.jvm % "compile->compile;test->test")
+  .enablePlugins(KotlinPlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      dependencies.arrowStm.value,
+      dependencies.kotlinxCoroutines.value,
+      dependencies.scalaJava8Compat.value,
+    ),
+    kotlin.Keys.kotlinVersion := "1.9.23",
+    kotlin.Keys.kotlincJvmTarget := "11",
+  )
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
   Test / fork := true,
@@ -248,6 +266,10 @@ lazy val dependencies = new {
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.2")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
+
+  val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm" % "1.2.4")
+  val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.8.1")
+  val scalaJava8Compat = Def.setting("org.scala-lang.modules" %%% "scala-java8-compat" % "1.0.2")
 }
 
 addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")
