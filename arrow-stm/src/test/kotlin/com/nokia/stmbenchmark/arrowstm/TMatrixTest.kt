@@ -6,10 +6,6 @@
 
 package com.nokia.stmbenchmark.arrowstm
 
-import kotlinx.coroutines.delay
-
-import arrow.fx.stm.TVar
-import arrow.fx.stm.STM
 import arrow.fx.stm.atomically
 
 class TMatrixTest {
@@ -28,5 +24,23 @@ class TMatrixTest {
       m.run { get(1, 1) }
     }
     check(v11 == "bar")
+  }
+
+  suspend fun test2(): Unit {
+    val m = atomically { newTMatrix(4, 4, "foo") }
+    val v0 = atomically {
+      catch ({
+        m.run { get(4, 0) }
+        check(false)
+      }) { e -> e }
+    }
+    check(v0 is IllegalArgumentException)
+    val v1 = atomically {
+      catch ({
+        m.run { get(0, 4) }
+        check(false)
+      }) { e -> e }
+    }
+    check(v1 is IllegalArgumentException)
   }
 }

@@ -13,7 +13,11 @@ final class TMatrixSpec extends FunSuite with KotlinInterop {
 
   private[this] val tmt = new TMatrixTest
 
-  test("TMatrix") {
+  test("TMatrix test1") {
     scalaFutureFromCoroutine(tmt.test1)
+  }
+
+  test("TMatrix test2") {
+    scalaFutureFromCoroutine(tmt.test2)
   }
 }
