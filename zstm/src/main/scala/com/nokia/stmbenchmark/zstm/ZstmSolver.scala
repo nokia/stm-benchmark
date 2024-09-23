@@ -41,8 +41,13 @@ object ZstmSolver {
               solution <- solve(route, cost)
               _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
               _ <- lay(depth, solution)
-            } yield solution
-            txn.commit
+            } yield {
+              println(s"Trying to commit $route")
+              solution
+            }
+            txn.commit.flatMap { s =>
+              ZIO.console.flatMap { c => c.printLine(s"Committed ${route}") }.as(s)
+            }
           }
 
           def expand(depth: TMatrix[Int], route: Route): TaskSTM[TMatrix[Int]] = {
