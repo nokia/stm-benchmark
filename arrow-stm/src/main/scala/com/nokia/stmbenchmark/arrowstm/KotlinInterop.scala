@@ -20,6 +20,8 @@ import kotlinx.coroutines.future.FutureKt
 import kotlinx.coroutines.CoroutineScopeKt
 import kotlinx.coroutines.CoroutineStart
 
+object KotlinInterop extends KotlinInterop
+
 trait KotlinInterop {
 
   final def completableFutureFromCoroutine[A](callCrt: Continuation[_ >: A] => AnyRef): CompletableFuture[A] = {

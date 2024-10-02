@@ -130,6 +130,7 @@ lazy val arrowStm = project.in(file("arrow-stm"))
       dependencies.kotlinxCoroutines.value,
       dependencies.scalaJava8Compat.value,
     ),
+    kotlin.Keys.kotlinLib("stdlib"),
     kotlin.Keys.kotlinVersion := "1.9.23",
     kotlin.Keys.kotlincJvmTarget := "11",
   )
