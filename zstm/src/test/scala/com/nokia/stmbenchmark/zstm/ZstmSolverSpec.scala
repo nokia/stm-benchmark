@@ -37,7 +37,7 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
 
   private[this] lazy val solver: Solver[Task] = {
     val mkSolver = ZIO.attempt { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      ZstmSolver(parLimit = 2, log = false)
+      ZstmSolver(parLimit = numCpu, log = false)
     }
     zio.Unsafe.unsafe { implicit u =>
       this.runtime.unsafe.run(mkSolver).getOrThrow()
