@@ -265,11 +265,11 @@ lazy val dependencies = new {
   val choam = Def.setting("dev.tauri" %%% "choam-async" % choamVersion)
   val choamProfiler = Def.setting("dev.tauri" %%% "choam-profiler" % choamVersion)
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
-  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.2")
+  val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.3")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
 
   val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm" % "1.2.4")
-  val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.8.1")
+  val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.9.0")
   val scalaJava8Compat = Def.setting("org.scala-lang.modules" %%% "scala-java8-compat" % "1.0.2")
 }
 
