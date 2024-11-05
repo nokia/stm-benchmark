@@ -40,7 +40,9 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
         solvedRoutes.addOne(Tuple2.apply(route, solution))
       }
       // we're cheating here with ev = null, but we know that it's correct:
-      return Solver.Solution(solvedRoutes.result().toMap(null))
+      val solMap = solvedRoutes.result().toMap<Route, List<Point>>(null)
+      debug("Full solution:\n" + board.debugSolution(solMap, log))
+      return Solver.Solution(solMap)
     } else {
       throw Exception("todo")
     }
