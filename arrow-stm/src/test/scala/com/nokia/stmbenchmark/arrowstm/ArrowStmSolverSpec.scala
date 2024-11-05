@@ -18,8 +18,14 @@ final class ArrowStmSolverSpec extends JvmCeIoSolverSpec {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       ArrowStmSolver(
         parLimit = 1, // TODO: numCpu
-        log = true, // TODO: false
+        log = false,
       )
     }
   }
+
+  testFromResource("testBoard.txt".tag(Verbose))
+  testFromResource("sparseshort_mini.txt")
+  testFromResource("sparseshort.txt")
+  testFromResource("sparselong_mini.txt")
+  testFromResource("sparselong.txt")
 }
