@@ -9,6 +9,8 @@ package com.nokia.stmbenchmark.arrowstm
 import scala.Tuple2
 import scala.collection.immutable.List
 import scala.collection.immutable.Nil
+import scala.collection.immutable.Map
+import scala.collection.mutable.Builder
 
 import arrow.fx.stm.STM
 import arrow.fx.stm.atomically
@@ -30,19 +32,35 @@ class ArrowStmSolverCrt(internal val parLimit: Int) {
 
     if (parLimit == 1) {
       val itr = board.routes().iterator()
-      // var builder = List$.MODULE$().empty<Tuple2<Route, List<Point>>>()
+      var solvedRoutes: Builder<Tuple2<Route, List<Point>>, List<Tuple2<Route, List<Point>>>> = List.newBuilder()
       while (itr.hasNext()) {
         val route = itr.next()
-        val solution = solveOneRoute(depth, route)
+        val solution = solveOneRoute(board, obstructed, depth, route)
+        solvedRoutes.addOne(Tuple2.apply(route, solution))
       }
+      // we're cheating here with ev = null, but we know that it's correct:
+      return Solver.Solution(solvedRoutes.result().toMap(null))
     } else {
+      throw Exception("todo")
     }
-
-    throw Exception("todo")
   }
 
-  internal suspend fun solveOneRoute(depth: TMatrix<Int>, route: Route): List<Point> {
-    throw Exception("todo")
+  internal suspend fun solveOneRoute(
+    board: Board.Normalized,
+    obstructed: BoolMatrix,
+    depth: TMatrix<Int>,
+    route: Route
+  ): List<Point> {
+    return atomically {
+      // TODO: debug(s"Solving $route")
+      val cost = expand(board, obstructed, depth, route)
+      // TODO: val costStr = cost.debug(debug = log)(i => f"$i%2s", txn)
+      // TODO: debug("Cost after `expand`:\n" + costStr)
+      val solution = solve(board, route, cost)
+      // TODO: debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
+      lay(depth, solution)
+      solution
+    }
   }
 
   internal fun STM.expand(
@@ -149,6 +167,11 @@ class ArrowStmSolverCrt(internal val parLimit: Int) {
   }
 
   internal fun STM.lay(depth: TMatrix<Int>, solution: List<Point>): Unit {
-    throw Exception("todo")
+    val itr = solution.iterator()
+    while (itr.hasNext()) {
+      val point = itr.next()
+      val ov: Int = depth.run { get(point.y(), point.x()) }
+      depth.run { set(point.y(), point.x(), ov + 1) }
+    }
   }
 }

@@ -1,0 +1,33 @@
+/*
+ * © 2023-2024 Nokia
+ * Licensed under the Apache License 2.0
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.nokia.stmbenchmark
+package arrowstm
+
+import cats.effect.Async
+
+import common.{ Solver, Board }
+
+object ArrowStmSolver extends KotlinInterop { interop =>
+
+  // TODO: This way, we have both a CE threadpool,
+  // TODO: and whatever threadpool the kotlin coroutines
+  // TODO: use. We should try having only one.
+
+  def apply[F[_]](parLimit: Int)(implicit F: Async[F]): F[Solver[F]] = {
+    F.pure(
+      new Solver[F] {
+
+        private[this] val solverCrt =
+          new ArrowStmSolverCrt(parLimit)
+
+        final override def solve(board: Board.Normalized): F[Solver.Solution] = {
+          interop.faFromCoroutine(solverCrt.solve(board, _))
+        }
+      }
+    )
+  }
+}
