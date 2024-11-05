@@ -27,6 +27,22 @@ public class TMatrix<A> internal constructor (
     require((col >= 0) && (col < width))
     arr[(row * width) + col] = a
   }
+
+  public fun STM.debug(debug: Boolean, transform: (A) -> String): String {
+    if (debug) {
+      val llb = mutableListOf<List<String>>()
+      for (row in 0 ..< height) {
+        val lb = mutableListOf<String>()
+        for (col in 0 ..< width) {
+          lb += transform(get(row, col))
+        }
+        llb += lb
+      }
+      return llb.joinToString("\n", transform = { lb -> lb.joinToString(", ") })
+    } else {
+      return ""
+    }
+  }
 }
 
 fun <A> STM.newTMatrix(h: Int, w: Int, initial: A): TMatrix<A> {

@@ -17,12 +17,12 @@ object ArrowStmSolver extends KotlinInterop { interop =>
   // TODO: and whatever threadpool the kotlin coroutines
   // TODO: use. We should try having only one.
 
-  def apply[F[_]](parLimit: Int)(implicit F: Async[F]): F[Solver[F]] = {
+  def apply[F[_]](parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
     F.pure(
       new Solver[F] {
 
         private[this] val solverCrt =
-          new ArrowStmSolverCrt(parLimit)
+          new ArrowStmSolverCrt(parLimit, log)
 
         final override def solve(board: Board.Normalized): F[Solver.Solution] = {
           interop.faFromCoroutine(solverCrt.solve(board, _))

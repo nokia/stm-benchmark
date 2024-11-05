@@ -21,7 +21,7 @@ import com.nokia.stmbenchmark.common.Route
 import com.nokia.stmbenchmark.common.BoolMatrix
 import com.nokia.stmbenchmark.common.Solver
 
-class ArrowStmSolverCrt(internal val parLimit: Int) {
+class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
 
   suspend fun solve(board: Board.Normalized): Solver.Solution {
     val obstructed = BoolMatrix.obstructedFromBoard(board)
@@ -32,7 +32,8 @@ class ArrowStmSolverCrt(internal val parLimit: Int) {
 
     if (parLimit == 1) {
       val itr = board.routes().iterator()
-      var solvedRoutes: Builder<Tuple2<Route, List<Point>>, List<Tuple2<Route, List<Point>>>> = List.newBuilder()
+      val solvedRoutes: Builder<Tuple2<Route, List<Point>>, List<Tuple2<Route, List<Point>>>> =
+        List.newBuilder()
       while (itr.hasNext()) {
         val route = itr.next()
         val solution = solveOneRoute(board, obstructed, depth, route)
@@ -45,6 +46,12 @@ class ArrowStmSolverCrt(internal val parLimit: Int) {
     }
   }
 
+  internal fun debug(msg: String): Unit {
+    if (log) {
+      println(msg)
+    }
+  }
+
   internal suspend fun solveOneRoute(
     board: Board.Normalized,
     obstructed: BoolMatrix,
@@ -52,12 +59,13 @@ class ArrowStmSolverCrt(internal val parLimit: Int) {
     route: Route
   ): List<Point> {
     return atomically {
-      // TODO: debug(s"Solving $route")
+      debug("Solving $route")
       val cost = expand(board, obstructed, depth, route)
-      // TODO: val costStr = cost.debug(debug = log)(i => f"$i%2s", txn)
-      // TODO: debug("Cost after `expand`:\n" + costStr)
+      val costStr = cost.run { debug(debug = log, transform = { i -> String.format("%2s", i) }) }
+      debug("Cost after `expand`:\n" + costStr)
       val solution = solve(board, route, cost)
-      // TODO: debug(s"Solution:\n" + board.debugSolution(Map(route -> solution), debug = log))
+      // we're cheating here with ev = null, but we know that it's correct:
+      debug("Solution:\n" + board.debugSolution(Nil.prepended(Tuple2.apply(route, solution)).toMap(null), log))
       lay(depth, solution)
       solution
     }
