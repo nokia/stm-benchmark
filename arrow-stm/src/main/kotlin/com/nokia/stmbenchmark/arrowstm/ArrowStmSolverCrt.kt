@@ -11,6 +11,14 @@ import scala.collection.immutable.List
 import scala.collection.immutable.Nil
 import scala.collection.immutable.Map
 import scala.collection.mutable.Builder
+import scala.collection.mutable.Growable
+
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.fold
 
 import arrow.fx.stm.STM
 import arrow.fx.stm.atomically
@@ -23,6 +31,7 @@ import com.nokia.stmbenchmark.common.Solver
 
 class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   suspend fun solve(board: Board.Normalized): Solver.Solution {
     val obstructed = BoolMatrix.obstructedFromBoard(board)
 
@@ -30,7 +39,7 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
       newTMatrix<Int>(board.height(), board.width(), 0)
     }
 
-    if (parLimit == 1) {
+    val solutions: List<Tuple2<Route, List<Point>>> = if (parLimit == 1) {
       val itr = board.routes().iterator()
       val solvedRoutes: Builder<Tuple2<Route, List<Point>>, List<Tuple2<Route, List<Point>>>> =
         List.newBuilder()
@@ -39,13 +48,32 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
         val solution = solveOneRoute(board, obstructed, depth, route)
         solvedRoutes.addOne(Tuple2.apply(route, solution))
       }
-      // we're cheating here with ev = null, but we know that it's correct:
-      val solMap = solvedRoutes.result().toMap<Route, List<Point>>(null)
-      debug("Full solution:\n" + board.debugSolution(solMap, log))
-      return Solver.Solution(solMap)
+      solvedRoutes.result()
     } else {
-      throw Exception("todo")
+      val itr: Iterator<Route> = kotlinIteratorFromScala(board.routes().iterator())
+      val routesFlow: Flow<Route> = itr.asFlow()
+      val solutionsFlow: Flow<Tuple2<Route, List<Point>>> = routesFlow.flatMapMerge(
+        concurrency = parLimit,
+        transform = { route: Route ->
+          flow {
+            val solution: List<Point> = solveOneRoute(board, obstructed, depth, route)
+            emit(Tuple2.apply(route, solution))
+          }
+        },
+      )
+      val nil: List<Tuple2<Route, List<Point>>> = List.newBuilder<Tuple2<Route, List<Point>>>().result()
+      solutionsFlow.fold(
+        initial = nil,
+        operation = { lst, pair ->
+          lst.prepended<Tuple2<Route, List<Point>>>(pair)
+        }
+      )
     }
+
+    // we're cheating here with ev = null, but we know that it's correct:
+    val solMap = solutions.toMap<Route, List<Point>>(null)
+    debug("Full solution:\n" + board.debugSolution(solMap, log))
+    return Solver.Solution(solMap)
   }
 
   internal fun debug(msg: String): Unit {
@@ -182,6 +210,15 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
       val point = itr.next()
       val ov: Int = depth.run { get(point.y(), point.x()) }
       depth.run { set(point.y(), point.x(), ov + 1) }
+    }
+  }
+
+  internal fun <A> kotlinIteratorFromScala(scalaItr: scala.collection.Iterator<A>): kotlin.collections.Iterator<A> {
+    return object : Iterator<A> {
+      override fun hasNext(): Boolean =
+        scalaItr.hasNext()
+      override fun next(): A =
+        scalaItr.next()
     }
   }
 }

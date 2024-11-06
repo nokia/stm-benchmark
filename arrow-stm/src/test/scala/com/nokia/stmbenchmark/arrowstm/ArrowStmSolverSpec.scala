@@ -17,7 +17,7 @@ final class ArrowStmSolverSpec extends JvmCeIoSolverSpec {
   protected final override def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       ArrowStmSolver(
-        parLimit = 1, // TODO: numCpu
+        parLimit = numCpu,
         log = false,
       )
     }
