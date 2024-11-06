@@ -28,4 +28,6 @@ final class ArrowStmSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
+  testFromResource("mainboard.txt", restrict = 2) // unrestricted takes almost 6 minutes
+  testFromResource("memboard.txt", restrict = 1) // unrestricted takes almost 4 minutes
 }
