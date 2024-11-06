@@ -14,7 +14,6 @@ ThisBuild / crossScalaVersions := Seq(scala3, scala2)
 ThisBuild / scalaVersion := crossScalaVersions.value.head
 ThisBuild / scalaOrganization := "org.scala-lang"
 ThisBuild / evictionErrorLevel := Level.Warn
-ThisBuild / scalafixScalaBinaryVersion := scalaBinaryVersion.value
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
