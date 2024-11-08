@@ -33,8 +33,8 @@ Further reading:
 
 We've implemented Lee's algorithm with various Scala STMs. We've tried to implement the algorithm
 as similar as reasonably possible in every implementation, but we didn't write (intentionally)
-unidiomatic code just to be more similar. The tested/measured STMs are as follows (with some remarks
-for each implementation):
+unidiomatic code just to be more similar. The tested/measured STMs are (in alphabetic order) as
+follows (with some remarks for each implementation):
 
 - [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm).
   - We run the Cats STM transactions on a Cats Effect runtime, which they're designed to run on.
@@ -83,7 +83,7 @@ They can be configured with the following JMH parameters:
 - `board` (`String`): the input(s) are specified by this parameter, which is a filename to be loaded from classpath resources.
 - `seed` (`Long`): before solving, the boards are "normalized" with a pseudorandom shuffle; this is the random seed to use.
 - `restrict` (`Int`): before solving, the boards are "restricted", i.e., some of the routes are removed from them. This
-  makes solving them easier (because there is less work, and also less change of conflicts). The value passed to
+  makes solving them easier (because there is less work, and also less chance of conflicts). The value passed to
   this parameter will be used to `>>` (right shift) the number of routes; e.g., `restrict=1` will remove approx.
   half of the routes. (The routes to remove are chosen pseudorandomly based on `seed`.)
 
