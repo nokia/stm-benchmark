@@ -10,6 +10,7 @@ package benchmarks
 import scala.annotation.nowarn
 
 import cats.effect.IO
+import cats.effect.unsafe.IORuntime
 
 import zio.Task
 
@@ -21,6 +22,7 @@ import zstm.ZstmSolver
 import choam.RxnSolver
 import scalastm.{ ScalaStmSolver, WrStmSolver }
 import sequential.SequentialSolver
+import arrowstm.{ KotlinInterop, ArrowStmSolver }
 
 @Fork(value = 3, jvmArgsAppend = Array(
   "-XX:+UseG1GC",
@@ -37,6 +39,11 @@ class Benchmarks {
 
   @Benchmark
   def baseline(st: BaselineState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def arrowStm(st: KotlinState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -131,10 +138,15 @@ object Benchmarks {
     }
 
     private[this] val runtime =
-      cats.effect.unsafe.IORuntime.global
+      this.createIoRuntime()
 
     protected final def unsafeRunSync[A](tsk: IO[A]): A =
       tsk.unsafeRunSync()(this.runtime)
+
+    /** Subclasses may override if they need something different */
+    protected def createIoRuntime(): IORuntime = {
+      IORuntime.global
+    }
 
     @Setup
     protected override def setup(): Unit = {
@@ -222,6 +234,18 @@ object Benchmarks {
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       WrStmSolver[IO](parLimit = parLimit, log = false)
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class KotlinState extends IOState {
+
+    protected final override def createIoRuntime() = {
+      KotlinInterop.ioRuntimeFromCoroutineDispatchers()
+    }
+
+    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
+      ArrowStmSolver[IO](parLimit = parLimit, log = false)
     }
   }
 

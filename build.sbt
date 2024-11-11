@@ -59,6 +59,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .dependsOn(zstm)
   .dependsOn(choam)
   .dependsOn(scalaStm)
+  .dependsOn(arrowStm)
   .enablePlugins(JmhPlugin)
 
 lazy val sequential = project.in(file("sequential"))
