@@ -8,11 +8,17 @@ package com.nokia.stmbenchmark
 package arrowstm
 
 import cats.effect.IO
+import cats.effect.unsafe.IORuntime
 
 import common.Solver
 import common.JvmCeIoSolverSpec
 
-final class ArrowStmSolverSpec extends JvmCeIoSolverSpec {
+final class ArrowStmSolverSpec extends JvmCeIoSolverSpec with KotlinInterop { interop =>
+
+  // Avoid creating a separate CE IORuntime, instead
+  // use the threadpool(s) the coroutines will use:
+  final override lazy val munitIORuntime: IORuntime =
+    interop.ioRuntimeFromCoroutineDispatchers()
 
   protected final override def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
