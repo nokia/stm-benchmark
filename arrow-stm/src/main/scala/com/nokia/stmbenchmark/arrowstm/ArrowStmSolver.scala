@@ -13,10 +13,6 @@ import common.{ Solver, Board }
 
 object ArrowStmSolver extends KotlinInterop { interop =>
 
-  // TODO: This way, we have both a CE threadpool,
-  // TODO: and whatever threadpool the kotlin coroutines
-  // TODO: use. We should try having only one.
-
   def apply[F[_]](parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
     F.pure(
       new Solver[F] {
