@@ -25,6 +25,7 @@ final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
     }
   }
 
+  testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")

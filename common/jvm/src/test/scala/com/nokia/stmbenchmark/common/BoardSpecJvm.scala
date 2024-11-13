@@ -21,6 +21,7 @@ final class BoardSpecJvm extends CatsEffectSuite {
     }
 
     IO.parSequenceN(4)(List(
+      tst("four_crosses.txt"),
       tst("mainboard.txt"),
       tst("memboard.txt"),
       tst("minimal.txt"),

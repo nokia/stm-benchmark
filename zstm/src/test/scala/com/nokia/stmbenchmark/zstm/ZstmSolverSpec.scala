@@ -123,6 +123,7 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
     }
   }
 
+  testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")

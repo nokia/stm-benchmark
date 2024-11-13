@@ -15,6 +15,7 @@ trait MunitUtils { this: munit.FunSuite =>
 
   private[this] val expectedDepthsAndCosts = Map[String, (Int, Int)](
     "minimal.txt" -> (2, 24),
+    "four_crosses.txt" -> (DontCare, DontCare), // TODO
     "testBoard.txt" -> (3, 3307),
     "sparseshort_mini.txt" -> (1, 990),
     "sparseshort.txt" -> (1, 9251),
