@@ -229,7 +229,11 @@ object Board extends BoardCompanionPlatform {
             val r = Route(a, b)
             if (a != b) {
               if (board.isRouteOnBoard(r)) {
-                cF.pure(board.copy(routes = board.routes + r))
+                if (board.pads.contains(r.a) && board.pads.contains(r.b)) {
+                  cF.pure(board.copy(routes = board.routes + r))
+                } else {
+                  cF.raiseError(new FileFormatException(s"route doesn't connect two pads: $r"))
+                }
               } else {
                 cF.raiseError(new FileFormatException(s"route not on board: $r"))
               }
