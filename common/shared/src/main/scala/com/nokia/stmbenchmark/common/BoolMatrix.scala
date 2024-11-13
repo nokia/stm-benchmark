@@ -24,7 +24,7 @@ final class BoolMatrix private (
       arr = {
         val a = new Array[Boolean](b.height * b.width)
         for (pad <- b.pads) {
-          BoolMatrix.unsafeSet(pad.y, pad.x, b.width, a)
+          BoolMatrix.unsafeSetTrue(a, b.width)(pad.y, pad.x)
         }
         a
       },
@@ -40,15 +40,11 @@ final class BoolMatrix private (
 
 object BoolMatrix {
 
-  def unsafeWrap(height: Int, width: Int, arr: Array[Boolean]): BoolMatrix = {
-    new BoolMatrix(height, width, arr)
-  }
-
   def obstructedFromBoard(board: Board.Normalized): BoolMatrix = {
     new BoolMatrix(board)
   }
 
-  private def unsafeSet(row: Int, col: Int, width: Int, arr: Array[Boolean]): Unit = {
+  private def unsafeSetTrue(arr: Array[Boolean], width: Int)(row: Int, col: Int): Unit = {
     arr((row * width) + col) = true
   }
 }
