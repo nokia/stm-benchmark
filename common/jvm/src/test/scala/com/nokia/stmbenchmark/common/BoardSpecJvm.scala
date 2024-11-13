@@ -26,8 +26,8 @@ final class BoardSpecJvm extends CatsEffectSuite {
       tst("minimal.txt"),
       tst("sparselong_mini.txt"),
       tst("sparselong.txt"),
-      // TODO: tst("sparseshort_mini.txt"),
-      // TODO: tst("sparseshort.txt"),
+      tst("sparseshort_mini.txt"),
+      tst("sparseshort.txt"),
       tst("testBoard.txt"),
     ))
   }
