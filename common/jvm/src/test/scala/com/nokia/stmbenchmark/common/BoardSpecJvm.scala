@@ -16,7 +16,9 @@ final class BoardSpecJvm extends CatsEffectSuite {
   test("Board.fromResource") {
     def tst(resourceName: String): IO[Unit] = {
       Board.fromResource[IO](resourceName).flatMap { board =>
-        IO(assert((board.height > 0) && (board.width > 0), clue = resourceName))
+        IO(assert((board.height > 0) && (board.width > 0), clue = resourceName)) *> IO(
+          board.normalize()
+        )
       }
     }
 

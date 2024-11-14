@@ -128,14 +128,19 @@ final case class Board(
   }
 
   def normalize(seed: Long): Board.Normalized = {
-    // normalize board, by (deterministically)
-    // shuffling routes (to reduce obvious conflicts):
+    // normalize the board, by (pseudo-randomly, based
+    // on `seed`) shuffling routes to reduce obvious
+    // conflicts; also flip some of the routes start
+    // and end points (similarly pseudo-randomly):
     val rnd = new Random(seed)
     Board.Normalized(
       height = this.height,
       width = this.width,
       pads = this.pads.toList.sorted,
-      routes = rnd.shuffle(this.routes.toList.sorted),
+      routes = rnd.shuffle(this.routes.toList.sorted).map { r =>
+        if (rnd.nextBoolean()) Route(a = r.b, b = r.a)
+        else r
+      },
       restricted = 0,
     )
   }
