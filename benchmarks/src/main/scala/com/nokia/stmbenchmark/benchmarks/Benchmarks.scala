@@ -78,7 +78,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class AbstractState {
 
-    @Param(Array("testBoard.txt", "sparselong_mini.txt", "sparseshort_mini.txt"))
+    @Param(Array("testBoard.txt", "sparselong_mini.txt", "sparseshort_mini.txt", "four_crosses.txt"))
     protected[this] var board: String =
       null
 
@@ -273,8 +273,7 @@ object Benchmarks {
     private[this] var solveTask: Task[Solver.Solution] =
       null.asInstanceOf[Task[Solver.Solution]]
 
-    private[this] final def unsafeRunSync[A](tsk: Task[A]): A = {
-      val task = zio.ZIO.yieldNow *> tsk
+    private[this] final def unsafeRunSync[A](task: Task[A]): A = {
       zio.Unsafe.unsafe { implicit u =>
         this.runtime.unsafe.run(task).getOrThrow()
       }
