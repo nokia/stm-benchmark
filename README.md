@@ -8,7 +8,7 @@
 
 # STM benchmarks
 
-*Benchmarks for software transactional memory (STM) implementations in Scala*
+*Benchmarks for software transactional memory (STM) implementations on the JVM*
 
 Based on the idea of [chrisseaton/ruby-stm-lee-demo](https://github.com/chrisseaton/ruby-stm-lee-demo)
 (and originally on [Lee-TM](https://apt.cs.manchester.ac.uk/projects/TM/LeeBenchmark/)),
@@ -31,12 +31,20 @@ Further reading:
 
 ## Tested STM implementations
 
-We've implemented Lee's algorithm with various Scala STMs. We've tried to implement the algorithm
-as similar as reasonably possible in every implementation, but we didn't write (intentionally)
-unidiomatic code just to be more similar. The tested/measured STMs are (in alphabetic order) as
-follows (with some remarks for each implementation):
+We've implemented Lee's algorithm with various STMs in Scala (and one in Kotlin). We've tried to
+implement the algorithm as similar as reasonably possible in every implementation, but we didn't
+write (intentionally) unidiomatic code just to be more similar. The tested/measured STMs are (in
+alphabetic order) as follows (with some remarks for each implementation):
 
-- [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm).
+- [arrow-fx-stm](https://arrow-kt.io/learn/coroutines/stm) in folder [arrow-stm](/arrow-stm)
+  - The algorithm is written in Kotlin, with a thin Scala wrapper; certain parts of the Kotlin
+    code are weird due to trying to implement a Scala API without excessive copying.
+  - We run the STM transactions on the default coroutine dispatcher of Kotlin (as they're
+    expected to be used).
+  - We also have to run some `cats.effect.IO`s (for loading the boards), but we run these
+    also on the same coroutine dispatcher.
+  - We use `arrow.fx.stm.TArray` for the board matrices.
+- [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm)
   - We run the Cats STM transactions on a Cats Effect runtime, which they're designed to run on.
   - We disable tracing in the runtime, to avoid the negative performance impact.
   - Cats STM doesn't have a built-in `TArray` or similar type, so we use `Array[TVar[A]]` for the
@@ -57,7 +65,7 @@ follows (with some remarks for each implementation):
   - For easy parallelization, we run the ScalaSTM transactions on a Cats Effect runtime.
     ScalaSTM sometimes blocks threads, but does this by using `scala.concurrent.BlockContext`,
     which is supported by the Cats Effect runtime (it starts compensating threads as necessary),
-    so this should be fine (although not ideal; but performance seems fine).
+    so this should be fine (although maybe not ideal).
   - We disable tracing in the runtime, to avoid the negative performance impact.
   - We use ScalaSTM's `TArray` for the board matrices.
 - [ZSTM](https://github.com/zio/zio/tree/series/2.x/core/shared/src/main/scala/zio/stm) in folder [zstm](/zstm).
