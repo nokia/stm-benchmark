@@ -89,11 +89,22 @@ Benchmarks are in [`Benchmarks.scala`](benchmarks/src/main/scala/com/nokia/stmbe
 They can be configured with the following JMH parameters:
 
 - `board` (`String`): the input(s) are specified by this parameter, which is a filename to be loaded from classpath resources.
+  - `testBoard.txt`: originally from Lee-TM, apparently a "small but realistic board".
+  - `sparselong_mini.txt`: a small version of `sparselong.txt`, originally from Lee-TM;
+    it has very long routes, so there are lots of conflicts between the transactions.
+  - `sparseshort_mini.txt`: a small version of `sparseshort.txt`, originally from Lee-TM;
+    it has very short routes, which cause transactions to have few conflicts.
+  - `four_crosses.txt`: a very small board we've created, with very short routes, which still
+    have both some conflicts, and also some possibilities for parallelization.
 - `seed` (`Long`): before solving, the boards are "normalized" with a pseudorandom shuffle; this is the random seed to use.
-- `restrict` (`Int`): before solving, the boards are "restricted", i.e., some of the routes are removed from them. This
-  makes solving them easier (because there is less work, and also less chance of conflicts). The value passed to
-  this parameter will be used to `>>` (right shift) the number of routes; e.g., `restrict=1` will remove approx.
-  half of the routes. (The routes to remove are chosen pseudorandomly based on `seed`.)
+- `restrict` (`Int`):
+  - Before solving, the boards are "restricted", i.e., some of the routes are removed from them.
+    This makes solving them easier (because there is less work, and also less chance of conflicts).
+  - The value passed to this parameter will be used to `>>` (right shift) the number of routes;
+    e.g., `restrict=1` will remove approximately half of the routes. (The routes to remove are
+    chosen pseudorandomly based on `seed`.)
+  - The goal with this parameter is to run more measurements, e.g., with `restrict=2,1,0`, to see
+    how the STMs deal with increasing work (and also conflicts).
 
 The various parallel implementations are tunable with more parameters:
 
