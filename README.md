@@ -40,7 +40,7 @@ alphabetic order) as follows (with some remarks for each implementation):
   - The algorithm is written in Kotlin, with a thin Scala wrapper; certain parts of the Kotlin
     code are weird due to trying to implement a Scala API without excessive copying.
   - We run the STM transactions on the default coroutine dispatcher of Kotlin (as they're
-    expected to be used).
+    probably expected to be used).
   - We also have to run some `cats.effect.IO`s (for loading the boards), but we run these
     also on the same coroutine dispatcher.
   - We use `arrow.fx.stm.TArray` for the board matrices.
@@ -97,8 +97,7 @@ They can be configured with the following JMH parameters:
 
 The various parallel implementations are tunable with more parameters:
 
-- `parLimit` (`Int`): parallelism is limited to this value (e.g., with `parTraverseN`); specify `0` to use
+- `parLimit` (`Int`): parallelism is limited to this value (e.g., with `parTraverseN`), but see below; specify `0` to use
   `Runtime.getRuntime().availableProcessors()`.
-- `txnLimitMultiplier` (`Int`; Cats STM only): we pass `txnLimitMultiplier * parLimit` to Cats STM as the number of transactions
-  that are allowed to evaluate concurrently (the `n` argument to `STM.runtime`).
+- `parLimitMultiplier` (`Int`): we use `parLimit * parLimitMultiplier` as the parallelism limit.
 - `strategy` (`String`; CHOAM only): the `Rxn.Strategy` to use for backoff (`spin` | `cede` | `sleep`).
