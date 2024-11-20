@@ -158,9 +158,7 @@ object UnsafeRunSyncBench {
     }
 
     protected[this] final def unsafeRunSync[A](task: Task[A]): A = {
-      zio.Unsafe.unsafe { implicit u =>
-        this.runtime.unsafe.run(task).getOrThrow()
-      }
+      this.runtime.unsafe.run(task)(implicitly[zio.Trace], zio.Unsafe).getOrThrow()(null, zio.Unsafe)
     }
 
     final def doUnsafeRunSync(): Long = {
