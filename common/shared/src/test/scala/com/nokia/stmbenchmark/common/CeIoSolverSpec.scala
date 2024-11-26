@@ -39,6 +39,15 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
   override def munitIOTimeout =
     60.minutes
 
+  test("empty.txt") {
+    createSolver.flatMap { solver =>
+      val b = this.normalize(Board.empty(10, 10))
+      solver.solve(b).flatMap { solution =>
+        IO { checkSolutionInternal("empty.txt", b, solution) }
+      }
+    }
+  }
+
   // https://github.com/chrisseaton/ruby-stm-lee-demo/blob/master/inputs/minimal.txt
   test("minimal.txt") { // TODO: run this small test repeatedly
     createSolver.flatMap { solver =>

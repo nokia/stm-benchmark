@@ -54,7 +54,7 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
     }) :: super.munitValueTransforms
   }
 
-  protected def normalize(b: Board): Board.Normalized = {
+  protected def normalize(b: Board): Board.Normalized = { // TODO: deduplicate
     val seed = if (b.routes.size > 240) {
       42L
     } else {
@@ -89,6 +89,13 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
           }
         }
       }
+    }
+  }
+
+  test("empty.txt") {
+    val b = this.normalize(Board.empty(10, 10))
+    solver.solve(b).flatMap { solution =>
+      ZIO.attempt { checkSolutionInternal("empty.txt", b, solution) }
     }
   }
 

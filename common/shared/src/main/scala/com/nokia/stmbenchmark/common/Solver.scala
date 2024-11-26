@@ -59,7 +59,7 @@ object Solver {
         }
       }
 
-      val result = (cost, depthMap.values.max)
+      val result = (cost, depthMap.values.maxOption.getOrElse(0))
       this.costAndDepth.compareAndExchange(null, result) match {
         case null => result
         case other => other
