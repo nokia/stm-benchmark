@@ -170,10 +170,15 @@ object Board extends BoardCompanionPlatform {
         require(rshift > 0)
         require(rshift < 32)
         val n = this.routes.size
-        val k = n >> rshift
-        require(k > 0)
-        require(k < n)
-        this.copy(routes = this.routes.take(k), restricted = this.restricted + rshift)
+        if (n == 0) {
+          // restricting an empty board is effectively a NOP:
+          this.copy(restricted = this.restricted + rshift)
+        } else {
+          val k = n >> rshift
+          require(k > 0)
+          require(k < n)
+          this.copy(routes = this.routes.take(k), restricted = this.restricted + rshift)
+        }
       }
     }
   }

@@ -78,7 +78,7 @@ object Benchmarks {
   @State(Scope.Benchmark)
   abstract class AbstractState {
 
-    @Param(Array("testBoard.txt", "sparselong_mini.txt", "sparseshort_mini.txt", "four_crosses.txt"))
+    @Param(Array("empty.txt", "four_crosses.txt", "testBoard.txt", "sparselong_mini.txt", "sparseshort_mini.txt"))
     protected[this] var board: String =
       null
 
