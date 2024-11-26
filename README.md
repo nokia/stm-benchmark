@@ -111,4 +111,3 @@ The various parallel implementations are tunable with more parameters:
 - `parLimit` (`Int`): parallelism is limited to this value (e.g., with `parTraverseN`), but see below; specify `0` to use
   `Runtime.getRuntime().availableProcessors()`.
 - `parLimitMultiplier` (`Int`): we use `parLimit * parLimitMultiplier` as the parallelism limit.
-- `strategy` (`String`; CHOAM only): the `Rxn.Strategy` to use for backoff (`spin` | `cede` | `sleep`).

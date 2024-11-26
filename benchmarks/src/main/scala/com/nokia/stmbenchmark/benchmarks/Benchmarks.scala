@@ -202,9 +202,9 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class RxnState extends IOState {
 
-    @Param(Array(/* "spin", "cede", */ "sleep"))
+    // @Param(Array("spin", "cede", "sleep"))
     protected[this] var strategy: String =
-      null
+      "sleep"
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       val str = this.strategy match {
