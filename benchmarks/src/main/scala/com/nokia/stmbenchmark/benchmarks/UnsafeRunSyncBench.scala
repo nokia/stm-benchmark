@@ -90,7 +90,7 @@ object UnsafeRunSyncBench {
 
     private[this] final def unsafeRunSyncWithoutFatalCb[A](tsk: IO[A]): A = {
       val q = new ArrayBlockingQueue[Either[Throwable, A]](1)
-      UnsafeAccess.unsafeRunFiberWithoutFatalCb(
+      UnsafeAccess.unsafeRunFiberWithoutFatalCb[A](
         this.runtime,
         tsk,
         () => {
