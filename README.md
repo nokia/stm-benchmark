@@ -105,6 +105,10 @@ They can be configured with the following JMH parameters:
     chosen pseudorandomly based on `seed`.)
   - The goal with this parameter is to run more measurements, e.g., with `restrict=2,1,0`, to see
     how the STMs deal with increasing work (and also conflicts).
+- `repeat` (`Int`): very small boards are solved so quickly, that the overhead of submitting
+    the work to an IO runtime causes problems with the measurement; to solve this problem, these
+    small boards can be configured with this parameter to be repeatedly solved in one JMH method
+    invocation.
 
 The various parallel implementations are tunable with more parameters:
 

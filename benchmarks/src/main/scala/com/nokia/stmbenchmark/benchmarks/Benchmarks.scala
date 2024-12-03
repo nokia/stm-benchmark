@@ -90,6 +90,18 @@ object Benchmarks {
     protected[this] var restrict: Int =
       -1
 
+    @Param(Array("-1"))
+    protected[this] var repeat: Int =
+      -1
+
+    protected[this] var normalizedRepeat: Int =
+      -1
+
+    protected[this] val boardRepeatDefaults: Map[String, Int] = Map(
+      "empty.txt" -> 100,
+      "four_crosses.txt" -> 10,
+    ).withDefaultValue(1)
+
     protected var normalizedBoard: Board.Normalized =
       null
 
@@ -112,6 +124,16 @@ object Benchmarks {
       } finally {
         setupRuntime.shutdown()
       }
+      val rep = this.repeat match {
+        case -1 =>
+          this.boardRepeatDefaults(this.board)
+        case n if n > 0 =>
+          n
+        case n =>
+          throw new IllegalArgumentException(s"invalid value for `repeat`: ${n}")
+      }
+      assert(rep >= 1)
+      this.normalizedRepeat = rep
     }
   }
 
@@ -161,7 +183,12 @@ object Benchmarks {
       val n = pl * plm
       require(n > 0)
       val solver = unsafeRunSync(this.mkSolver(n))
-      this.solveTask = IO.cede *> solver.solve(this.normalizedBoard)
+      this.solveTask = IO.cede *> repeatIO(solver.solve(this.normalizedBoard), this.normalizedRepeat)
+    }
+
+    private[this] final def repeatIO[A](tsk: IO[A], n: Int): IO[A] = {
+      if (n <= 1) tsk
+      else tsk.flatMap { _ => repeatIO(tsk, n - 1) }
     }
   }
 
@@ -183,7 +210,12 @@ object Benchmarks {
     protected override def setup(): Unit = {
       super.setup()
       val solver = SequentialSolver[IO](log = false).unsafeRunSync()(this.runtime)
-      this.solveTask = IO.cede *> solver.solve(this.normalizedBoard)
+      this.solveTask = IO.cede *> repeatIO(solver.solve(this.normalizedBoard), this.normalizedRepeat)
+    }
+
+    private[this] final def repeatIO[A](tsk: IO[A], n: Int): IO[A] = {
+      if (n <= 1) tsk
+      else tsk.flatMap { _ => repeatIO(tsk, n - 1) }
     }
   }
 
@@ -296,7 +328,12 @@ object Benchmarks {
       val n = pl * plm
       require(n > 0)
       val solver = unsafeRunSync(ZstmSolver(parLimit = n, log = false))
-      this.solveTask = zio.ZIO.yieldNow *> solver.solve(this.normalizedBoard)
+      this.solveTask = zio.ZIO.yieldNow *> repeatZIO(solver.solve(this.normalizedBoard), this.normalizedRepeat)
+    }
+
+    private[this] final def repeatZIO[A](tsk: Task[A], n: Int): Task[A] = {
+      if (n <= 1) tsk
+      else tsk.flatMap { _ => repeatZIO(tsk, n - 1) }
     }
   }
 }
