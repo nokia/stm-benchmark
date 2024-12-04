@@ -27,7 +27,7 @@ object SequentialSolver {
 
         def solveOneRoute(depth: Matrix[F, Int], route: Route): F[List[Point]] = {
           for {
-            _ <- debug(s"Solving $route")
+            _ <- if (log) debug(s"Solving $route") else F.unit
             cost <- expand(depth, route)
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)

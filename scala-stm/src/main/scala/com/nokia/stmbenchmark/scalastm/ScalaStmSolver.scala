@@ -40,7 +40,7 @@ object ScalaStmSolver {
 
           def solveOneRoute(depth: TMatrix[Int], route: Route): List[Point] = {
             atomic { implicit txn =>
-              debug(s"Solving $route")
+              if (log) debug(s"Solving $route")
               val cost = expand(depth, route)
               val costStr = cost.debug(debug = log)(i => f"$i%2s", txn)
               debug("Cost after `expand`:\n" + costStr)

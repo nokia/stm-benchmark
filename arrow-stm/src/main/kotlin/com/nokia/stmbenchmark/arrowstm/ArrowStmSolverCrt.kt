@@ -89,7 +89,7 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
     route: Route
   ): List<Point> {
     return atomically {
-      debug("Solving $route")
+      if (log) { debug("Solving $route") }
       val cost = expand(board, obstructed, depth, route)
       val costStr = cost.run { debug(debug = log, transform = { i -> String.format("%2s", i) }) }
       debug("Cost after `expand`:\n" + costStr)

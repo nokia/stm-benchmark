@@ -63,7 +63,7 @@ object RxnSolver {
 
         def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
           val act: Axn[List[Point]] = for {
-            _ <- debug(s"Solving $route")
+            _ <- if (log) debug(s"Solving $route") else Axn.unit
             cost <- expand(depth, route)
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)

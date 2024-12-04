@@ -34,7 +34,7 @@ object ZstmSolver {
 
           def solveOneRoute(depth: TMatrix[Int], route: Route): Task[List[Point]] = {
             val txn = for {
-              _ <- debug(s"Solving $route")
+              _ <- if (log) debug(s"Solving $route") else ZSTM.unit
               cost <- expand(depth, route)
               costStr <- cost.debug(debug = log)(i => f"$i%2s")
               _ <- debug("Cost after `expand`:\n" + costStr)

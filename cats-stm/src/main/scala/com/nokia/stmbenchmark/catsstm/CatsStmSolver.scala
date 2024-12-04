@@ -44,7 +44,7 @@ object CatsStmSolver {
 
             def solveOneRoute(depth: TMatrix[F, stm.type, Int], route: Route): F[List[Point]] = {
               val txn = for {
-                _ <- debug(s"Solving $route")
+                _ <- if (log) debug(s"Solving $route") else Txn.monadForTxn.unit
                 cost <- expand(depth, route)
                 costStr <- cost.debug(debug = log)(i => f"$i%2s")
                 _ <- debug("Cost after `expand`:\n" + costStr)

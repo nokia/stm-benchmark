@@ -39,7 +39,7 @@ object WrStmSolver {
 
           def solveOneRoute(depth: TMatrix[Int], route: Route): F[List[Point]] = {
             val txn = for {
-              _ <- debug(s"Solving $route (thread ${Thread.currentThread()})")
+              _ <- if (log) debug(s"Solving $route") else WrStm.unit
               cost <- expand(depth, route)
               costStr <- WrStm.debugTm(cost, debug = log)(i => f"$i%2s")
               _ <- debug("Cost after `expand`:\n" + costStr)
