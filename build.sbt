@@ -6,7 +6,7 @@
 
 // Scala versions:
 val scala2 = "2.13.15"
-val scala3 = "3.3.4"
+val scala3 = "3.5.2"
 
 val TestInternal = "test-internal"
 
@@ -30,6 +30,7 @@ lazy val stmBenchmark = project.in(file("."))
     choam,
     scalaStm,
     arrowStm,
+    kyoStm
   )
 
 lazy val common = crossProject(JVMPlatform, JSPlatform)
@@ -60,6 +61,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .dependsOn(choam)
   .dependsOn(scalaStm)
   .dependsOn(arrowStm)
+  .dependsOn(kyoStm)
   .enablePlugins(JmhPlugin)
 
 lazy val sequential = project.in(file("sequential"))
@@ -133,6 +135,19 @@ lazy val arrowStm = project.in(file("arrow-stm"))
     kotlin.Keys.kotlinLib("stdlib"),
     kotlin.Keys.kotlinVersion := "1.9.23",
     kotlin.Keys.kotlincJvmTarget := "11",
+  )
+
+lazy val kyoStm = project.in(file("kyo-stm"))
+  .settings(name := "stm-benchmark-kyo-stm")
+  .settings(commonSettings)
+  .settings(commonSettingsJvm)
+  .settings(publishArtifact := false)
+  .dependsOn(common.jvm % "compile->compile;test->test")
+  .settings(
+    crossScalaVersions := Seq(scala3),
+    libraryDependencies ++= Seq(
+      dependencies.kyoStm.value,
+    ),
   )
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
@@ -267,6 +282,7 @@ lazy val dependencies = new {
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.3")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
+  val kyoStm = Def.setting("io.getkyo" %%% "kyo-stm" % "0.15.0")
 
   val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm" % "1.2.4")
   val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.9.0")
