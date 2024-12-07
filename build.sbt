@@ -144,9 +144,14 @@ lazy val kyoStm = project.in(file("kyo-stm"))
   .settings(publishArtifact := false)
   .dependsOn(common.jvm % "compile->compile;test->test")
   .settings(
-    crossScalaVersions := Seq(scala3),
-    libraryDependencies ++= Seq(
-      dependencies.kyoStm.value,
+    libraryDependencies ++= (
+      if (ScalaArtifacts.isScala3(scalaVersion.value)) {
+        Seq(
+          dependencies.kyoStm.value,
+        )
+      } else {
+        Nil
+      }
     ),
   )
 
