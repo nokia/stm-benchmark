@@ -7,13 +7,26 @@
 package com.nokia.stmbenchmark
 package kyostm
 
-import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo }
+import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule }
 
 import common.{ Board, BoolMatrix, Point, Route, Solver }
 
 object KyoStmSolver {
 
-  def apply(parLimit: Int, log: Boolean): Solver[<[*, Async & Abort[Throwable]]] < Async = {
+  val defaultRetrySchedule: Schedule = {
+    // by default, kyo-stm seems to only
+    // (re?)try transactions 20 times; but
+    // that is enough to solve only the
+    // smallest boards, so we configure
+    // infinite retries here:
+    STM.defaultRetrySchedule.forever
+  }
+
+  def apply(
+    parLimit: Int,
+    log: Boolean,
+    retrySchedule: Schedule = defaultRetrySchedule,
+  ): Solver[<[*, Async & Abort[Throwable]]] < Async = {
     new Solver[<[*, Async & Abort[Throwable]]] {
 
       private[this] final def debug(msg: String): Unit < IO = {
@@ -39,7 +52,7 @@ object KyoStmSolver {
             }
           }
 
-          STM.run(txn)
+          STM.run(retrySchedule)(txn)
         }
 
         def expand(depth: TMatrix[Int], route: Route): TMatrix[Int] < STM = {
@@ -136,7 +149,7 @@ object KyoStmSolver {
           }
         }
 
-        STM.run(TMatrix.apply[Int](h = board.height, w = board.width, initial = 0)).map { depth =>
+        STM.run(retrySchedule)(TMatrix.apply[Int](h = board.height, w = board.width, initial = 0)).map { depth =>
           val solveOne = { (route: Route) =>
             solveOneRoute(depth, route).map(route -> _)
           }

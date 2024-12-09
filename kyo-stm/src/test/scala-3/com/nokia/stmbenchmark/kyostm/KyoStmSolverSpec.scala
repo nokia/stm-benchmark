@@ -28,10 +28,14 @@ final class KyoStmSolverSpec extends FunSuite with KyoInterop with MunitUtils {
   private[this] lazy val solver: Solver[<[*, Async & Abort[Throwable]]] = {
     import AllowUnsafe.embrace.danger
     IO.Unsafe.run(
-      Abort.run(Async.runAndBlock(kyo.Duration.Infinity)(KyoStmSolver(
-        parLimit = 1, // TODO
-        log = false,
-      )))
+      Abort.run(Async.runAndBlock(kyo.Duration.Infinity)(
+        IO { Runtime.getRuntime().availableProcessors() }.map { numCpu =>
+          KyoStmSolver(
+            parLimit = numCpu,
+            log = false,
+          )
+        }
+      ))
     ).eval.fold(err => throw err.getFailure)(s => s)
   }
 
@@ -121,4 +125,5 @@ final class KyoStmSolverSpec extends FunSuite with KyoInterop with MunitUtils {
   }
 
   testFromResource("four_crosses.txt".tag(Verbose))
+  testFromResource("testBoard.txt".tag(Verbose))
 }
