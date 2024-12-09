@@ -203,8 +203,8 @@ lazy val commonSettings = Seq[Setting[_]](
         "-Xverify-signatures",
         "-Wunused:all",
         // no equivalent:
-        "-Ykind-projector",
-        "-Ysafe-init",
+        "-Xkind-projector",
+        "-Wsafe-init",
         "-Ycheck-all-patmat",
       )
     }
@@ -255,7 +255,7 @@ lazy val dependencies = new {
 
   val catsVersion = "2.12.0"
   val catsEffectVersion = "3.5.7"
-  val catsStmVersion = "0.13.4"
+  val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.13"
   val choamVersion = "0.4.8"
   val fs2Version = "3.11.0"
