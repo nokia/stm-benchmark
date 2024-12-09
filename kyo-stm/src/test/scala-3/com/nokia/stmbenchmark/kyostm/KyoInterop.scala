@@ -39,7 +39,7 @@ trait KyoInterop extends ValueTransforms { this: BaseFunSuite =>
 
   private[this] final def handleIO[A](tsk: A < (IO & Abort[Throwable]))(implicit f: Flat[A]): Future[A] = {
     import AllowUnsafe.embrace.danger
-    val ioResult: Result[Throwable, A] < IO = Abort.run.apply(tsk)
+    val ioResult: Result[Throwable, A] < IO = Abort.run(tsk)
     val result: Result[Throwable, A] = IO.Unsafe.run[Result[Throwable, A], Nothing](ioResult).eval
     result.fold (err => Future.failed(err.getFailure))(Future.successful)
   }

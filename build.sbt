@@ -148,6 +148,7 @@ lazy val kyoStm = project.in(file("kyo-stm"))
       if (ScalaArtifacts.isScala3(scalaVersion.value)) {
         Seq(
           dependencies.kyoStm.value,
+          dependencies.kyoCats.value % TestInternal,
         )
       } else {
         Nil
@@ -257,6 +258,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.7"
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.13"
+  val kyoVersion = "0.15.1"
   val choamVersion = "0.4.8"
   val fs2Version = "3.11.0"
   val kindProjectorVersion = "0.13.3"
@@ -287,7 +289,8 @@ lazy val dependencies = new {
   val scalaStm = Def.setting("org.scala-stm" %%% "scala-stm" % "0.11.1")
   val zioCats = Def.setting("dev.zio" %%% "zio-interop-cats" % "23.1.0.3")
   val zioStm = Def.setting("dev.zio" %%% "zio" % zioVersion)
-  val kyoStm = Def.setting("io.getkyo" %%% "kyo-stm" % "0.15.1")
+  val kyoStm = Def.setting("io.getkyo" %%% "kyo-stm" % kyoVersion)
+  val kyoCats = Def.setting("io.getkyo" %%% "kyo-cats" % kyoVersion)
 
   val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm-jvm" % "2.0.0")
   val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.9.0")
