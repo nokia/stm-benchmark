@@ -33,7 +33,7 @@ import arrowstm.{ KotlinInterop, ArrowStmSolver }
 ))
 @Threads(1) // because it runs on a thread-pool
 @BenchmarkMode(Array(Mode.AverageTime))
-class Benchmarks {
+class Benchmarks extends BenchmarksScalaVersionSpecific {
 
   import Benchmarks._
 
@@ -109,10 +109,10 @@ object Benchmarks {
 
     @Setup
     protected def setup(): Unit = {
-      // for ZSTM, we want to avoid a CE threadpool
-      // existing during the measurement, so we create
-      // a separate runtime just for the initialization,
-      // and then shut it down:
+      // for ZSTM/kyo-stm/arrow-stm, we want to avoid a
+      // CE threadpool existing during the measurement,
+      // so we create a separate runtime just for the
+      // initialization, and then shut it down:
       val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
       try {
         val b = Board.fromResource[IO](this.board).unsafeRunSync()(setupRuntime)
