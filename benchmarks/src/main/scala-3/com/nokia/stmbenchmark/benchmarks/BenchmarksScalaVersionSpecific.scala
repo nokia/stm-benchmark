@@ -53,7 +53,12 @@ object BenchmarksScalaVersionSpecific {
     }
 
     final override def runSolveTask(): Solver.Solution = {
-      unsafeRunSync(this.solveTask)
+      import kyo.AllowUnsafe.embrace.danger
+      IO.Unsafe.run(
+        Abort.run(
+          Async.run(this.solveTask).flatMap(_.block(kyo.Duration.Infinity))
+        ).map(_.getOrThrow)
+      ).eval.getOrThrow
     }
 
     @Setup
@@ -69,7 +74,7 @@ object BenchmarksScalaVersionSpecific {
       val n = pl * plm
       require(n > 0)
       val solver = unsafeRunSync(KyoStmSolver(parLimit = n, log = false))
-      this.solveTask = /* TODO: cede *> */ repeatKyo(solver.solve(this.normalizedBoard), this.normalizedRepeat)
+      this.solveTask = repeatKyo(solver.solve(this.normalizedBoard), this.normalizedRepeat)
     }
 
     private[this] final def repeatKyo[A](tsk: <[A, Async & Abort[Throwable]], n: Int): A < (Async & Abort[Throwable]) = {
