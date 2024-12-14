@@ -53,7 +53,12 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
   }
 
   @Benchmark
-  def rxn(st: RxnState): Solver.Solution = {
+  def rxnOnCe(st: RxnState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def rxnOnZio(st: RxnOnZioState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -231,15 +236,10 @@ object Benchmarks {
     }
   }
 
-  @State(Scope.Benchmark)
-  class RxnState extends IOState {
+  trait RxnStateMixin {
 
-    // @Param(Array("spin", "cede", "sleep"))
-    protected[this] var strategy: String =
-      "sleep"
-
-    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      val str = this.strategy match {
+    protected final def createSolver[F[_] : cats.effect.Async](parLimit: Int, strategy: String): F[Solver[F]] = {
+      val str = strategy match {
         case "spin" =>
           RxnSolver.spinStrategy
         case "cede" =>
@@ -249,7 +249,31 @@ object Benchmarks {
         case x =>
           throw new IllegalArgumentException(s"invalid strategy: ${x}")
       }
-      RxnSolver[IO](parLimit = parLimit, log = false, strategy = str)
+      RxnSolver[F](parLimit = parLimit, log = false, strategy = str)
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class RxnState extends IOState with RxnStateMixin {
+
+    // @Param(Array("spin", "cede", "sleep"))
+    protected[this] var strategy: String =
+      "sleep"
+
+    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
+      this.createSolver[IO](parLimit, this.strategy)
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class RxnOnZioState extends ZioState with RxnStateMixin {
+
+    // @Param(Array("spin", "cede", "sleep"))
+    protected[this] var strategy: String =
+      "sleep"
+
+    protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
+      this.createSolver[Task](parLimit, this.strategy)(zio.interop.catz.asyncInstance)
     }
   }
 

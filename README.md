@@ -52,8 +52,11 @@ alphabetic order) as follows (with some remarks for each implementation):
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam)
   - This is technically not an STM, but close enough (this algorithm doesn't require
     _everything_ from an STM, e.g., there is no need for the `orElse` combinator).
-  - We run the `Rxn`s on a Cats Effect runtime, which they're designed to run on.
-  - We disable tracing in the runtime, to avoid the negative performance impact.
+  - CHOAM's `Rxn` is parametric in the effect type, so we run with two different `F[_]`s:
+    - `cats.effect.IO`, which we run on a Cats Effect runtime. In this case we disable tracing
+      in the runtime, to avoid the negative performance impact.
+    - `zio.Task`, which we run on a `zio.Runtime`. In this case we disable `FiberRoots` in the
+      runtime, to avoid the negative performance impact.
   - For the board matrices we use the built-in `Ref.array` in CHOAM.
 - [ScalaSTM](https://github.com/scala-stm/scala-stm) in folder [scala-stm](/scala-stm)
   - We've implemented 2 versions:

@@ -53,7 +53,10 @@ lazy val benchmarks = project.in(file("benchmarks"))
     publishArtifact := false,
     Jmh / version := dependencies.jmhVersion,
     Jmh / bspEnabled := false, // https://github.com/sbt/sbt-jmh/issues/193
-    libraryDependencies += dependencies.choamProfiler.value,
+    libraryDependencies ++= Seq(
+      dependencies.choamProfiler.value,
+      dependencies.zioCats.value,
+    ),
   )
   .dependsOn(sequential)
   .dependsOn(catsStm)
