@@ -282,7 +282,7 @@ object Benchmarks {
   }
 
   @State(Scope.Benchmark)
-  class ZstmState extends AbstractState {
+  abstract class ZioState extends AbstractState {
 
     @Param(Array("0")) // 0 means availableProcessors()
     @nowarn("msg=unset private variable")
@@ -304,6 +304,8 @@ object Benchmarks {
 
     private[this] var solveTask: Task[Solver.Solution] =
       null.asInstanceOf[Task[Solver.Solution]]
+
+    protected def mkSolver(parLimit: Int): Task[Solver[Task]]
 
     private[this] final def unsafeRunSync[A](task: Task[A]): A = {
       zio.Unsafe.unsafe { implicit u =>
@@ -327,13 +329,20 @@ object Benchmarks {
       val plm = this.parLimitMultiplier
       val n = pl * plm
       require(n > 0)
-      val solver = unsafeRunSync(ZstmSolver(parLimit = n, log = false))
+      val solver = unsafeRunSync(mkSolver(n))
       this.solveTask = zio.ZIO.yieldNow *> repeatZIO(solver.solve(this.normalizedBoard), this.normalizedRepeat)
     }
 
     private[this] final def repeatZIO[A](tsk: Task[A], n: Int): Task[A] = {
       if (n <= 1) tsk
       else tsk.flatMap { _ => repeatZIO(tsk, n - 1) }
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class ZstmState extends ZioState {
+    protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
+      ZstmSolver(parLimit = parLimit, log = false)
     }
   }
 }
