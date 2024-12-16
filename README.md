@@ -42,21 +42,20 @@ alphabetic order) as follows (with some remarks for each implementation):
   - We run the STM transactions on the default coroutine dispatcher of Kotlin (as they're
     probably expected to be used).
   - We also have to run some `cats.effect.IO`s (for loading the boards), but we run these
-    also on the same coroutine dispatcher.
+    also on the same coroutine dispatcher (so we don't have another thread pool running).
   - We use `arrow.fx.stm.TArray` for the board matrices.
 - [Cats STM](https://github.com/TimWSpence/cats-stm) in folder [cats-stm](/cats-stm)
-  - We run the Cats STM transactions on a Cats Effect runtime, which they're designed to run on.
-  - We disable tracing in the runtime, to avoid the negative performance impact.
+  - Cats STM is parametric in the effect type, so we run with two different `F[_]`s:
+    - `cats.effect.IO`, which we run on a Cats Effect runtime.
+    - `zio.Task`, which we run on a `zio.Runtime`.
   - Cats STM doesn't have a built-in `TArray` or similar type, so we use `Array[TVar[A]]` for the
     board matrices.
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam)
   - This is technically not an STM, but close enough (this algorithm doesn't require
     _everything_ from an STM, e.g., there is no need for the `orElse` combinator).
   - CHOAM's `Rxn` is parametric in the effect type, so we run with two different `F[_]`s:
-    - `cats.effect.IO`, which we run on a Cats Effect runtime. In this case we disable tracing
-      in the runtime, to avoid the negative performance impact.
-    - `zio.Task`, which we run on a `zio.Runtime`. In this case we disable `FiberRoots` in the
-      runtime, to avoid the negative performance impact.
+    - `cats.effect.IO`, which we run on a Cats Effect runtime.
+    - `zio.Task`, which we run on a `zio.Runtime`.
   - For the board matrices we use the built-in `Ref.array` in CHOAM.
 - [ScalaSTM](https://github.com/scala-stm/scala-stm) in folder [scala-stm](/scala-stm)
   - We've implemented 2 versions:
@@ -69,12 +68,18 @@ alphabetic order) as follows (with some remarks for each implementation):
     ScalaSTM sometimes blocks threads, but does this by using `scala.concurrent.BlockContext`,
     which is supported by the Cats Effect runtime (it starts compensating threads as necessary),
     so this should be fine (although maybe not ideal).
-  - We disable tracing in the runtime, to avoid the negative performance impact.
   - We use ScalaSTM's `TArray` for the board matrices.
 - [ZSTM](https://github.com/zio/zio/tree/series/2.x/core/shared/src/main/scala/zio/stm) in folder [zstm](/zstm).
-  - We run the ZSTM transactions on their own `zio.Runtime`, which they seem designed for.
-  - We disable `FiberRoots` in the runtime, to avoid the negative performance impact.
+  - We run the ZSTM transactions on their own `zio.Runtime`, which they are presumably designed for.
   - We use ZSTM's `TArray` for the board matrices.
+
+We try to run the various implementations on asynchronous runtimes they're designed for. When they're
+not designed for a specific runtime, we benchmark them on multiple ones (see above for details).
+We configure these runtimes by trying to turn off features which could have a negative performance impact.
+In particular:
+
+- `cats.effect.unsafe.IORuntime`: we disable tracing.
+- `zio.Runtime`: we disable `FiberRoots`.
 
 Some general remarks:
 

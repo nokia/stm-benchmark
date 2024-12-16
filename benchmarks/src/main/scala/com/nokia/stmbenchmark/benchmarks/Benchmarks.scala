@@ -48,12 +48,17 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
   }
 
   @Benchmark
-  def catsStm(st: CatsStmState): Solver.Solution = {
+  def catsStmOnCe(st: CatsStmOnCeState): Solver.Solution = {
     st.runSolveTask()
   }
 
   @Benchmark
-  def rxnOnCe(st: RxnState): Solver.Solution = {
+  def catsStmOnZio(st: CatsStmOnZioState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def rxnOnCe(st: RxnOnCeState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -225,7 +230,7 @@ object Benchmarks {
   }
 
   @State(Scope.Benchmark)
-  class CatsStmState extends IOState {
+  class CatsStmOnCeState extends IOState {
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       CatsStmSolver[IO](
@@ -233,6 +238,18 @@ object Benchmarks {
         parLimit = parLimit,
         log = false,
       )
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class CatsStmOnZioState extends ZioState {
+
+    protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
+      CatsStmSolver[Task](
+        txnLimit = parLimit.toLong,
+        parLimit = parLimit,
+        log = false,
+      )(zio.interop.catz.asyncInstance)
     }
   }
 
@@ -254,7 +271,7 @@ object Benchmarks {
   }
 
   @State(Scope.Benchmark)
-  class RxnState extends IOState with RxnStateMixin {
+  class RxnOnCeState extends IOState with RxnStateMixin {
 
     // @Param(Array("spin", "cede", "sleep"))
     protected[this] var strategy: String =
