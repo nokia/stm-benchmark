@@ -30,6 +30,7 @@ import arrowstm.{ KotlinInterop, ArrowStmSolver }
   // "-XX:+UseShenandoahGC",
   "-Dcats.effect.tracing.mode=NONE",
   "-Ddev.tauri.choam.stats=false",
+  "-Dkyo.scheduler.enableTopJMX=false",
 ))
 @Threads(1) // because it runs on a thread-pool
 @BenchmarkMode(Array(Mode.AverageTime))
