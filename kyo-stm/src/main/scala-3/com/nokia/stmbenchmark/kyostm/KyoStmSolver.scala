@@ -150,15 +150,16 @@ object KyoStmSolver {
         }
 
         STM.run(retrySchedule)(TMatrix.apply[Int](h = board.height, w = board.width, initial = 0)).map { depth =>
+          val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes))
           val solveOne = { (route: Route) =>
             solveOneRoute(depth, route).map(route -> _)
           }
-          val solveInParallel = if (parLimit == 1) {
+          val solveAll = if (pl == 1) {
             Kyo.foreach(board.routes)(solveOne)
           } else {
-            Async.parallel(parallelism = parLimit)(board.routes.map(solveOne))
+            Async.parallel(parallelism = pl)(board.routes.map(solveOne))
           }
-          solveInParallel.map { solutions =>
+          solveAll.map { solutions =>
             val solution = Map(solutions: _*)
             debug("Full solution:\n" + board.debugSolution(solution, debug = log)).map { _ =>
               Solver.Solution(solution)

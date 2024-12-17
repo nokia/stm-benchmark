@@ -165,15 +165,16 @@ object RxnSolver {
           w = board.width,
           initial = 0,
         ).run[F].flatMap { depth =>
+          val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes))
           val solveOne = { (route: Route) =>
             solveOneRoute(depth, route).map(route -> _)
           }
-          val solveInParallel = if (parLimit == 1) {
+          val solveAll = if (pl == 1) {
             board.routes.traverse(solveOne)
           } else {
-            board.routes.parTraverseN(parLimit)(solveOne)
+            board.routes.parTraverseN(pl)(solveOne)
           }
-          solveInParallel.flatMap { solutions =>
+          solveAll.flatMap { solutions =>
             val solution = Map(solutions: _*)
             debugF("Full solution:\n" + board.debugSolution(solution, debug = log)).as(Solver.Solution(solution))
           }

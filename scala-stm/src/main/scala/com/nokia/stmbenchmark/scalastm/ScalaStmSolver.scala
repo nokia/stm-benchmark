@@ -134,18 +134,19 @@ object ScalaStmSolver {
 
           F.defer {
             val depth = TMatrix[Int](h = board.height, w = board.width, initial = 0)
+            val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes))
             val solveOne = { (route: Route) =>
               F.delay {
                 val solution = solveOneRoute(depth, route)
                 (route, solution)
               }
             }
-            val solveInParallel = if (parLimit == 1) {
+            val solveAll = if (pl == 1) {
               board.routes.traverse(solveOne)
             } else {
-              board.routes.parTraverseN(parLimit)(solveOne)
+              board.routes.parTraverseN(pl)(solveOne)
             }
-            F.flatMap(solveInParallel) { solutions =>
+            F.flatMap(solveAll) { solutions =>
               val solution = Map(solutions: _*)
               F.as(debugF("Full solution:\n" + board.debugSolution(solution, debug = log)), Solver.Solution(solution))
             }

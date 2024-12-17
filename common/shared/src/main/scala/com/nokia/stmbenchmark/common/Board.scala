@@ -159,11 +159,14 @@ object Board extends BoardCompanionPlatform {
     restricted: Int,
   ) extends AbstractBoard(height = height, width = width) {
 
-    def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
+    final val numberOrRoutes: Int =
+      routes.length // List#length is O(n), so we save it
+
+    final def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
       this.isSolutionValid(routes, solution)
     }
 
-    def restrict(rshift: Int): Normalized = {
+    final def restrict(rshift: Int): Normalized = {
       if (rshift == 0) {
         this
       } else {

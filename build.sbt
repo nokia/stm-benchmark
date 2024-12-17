@@ -157,6 +157,7 @@ lazy val kyoStm = project.in(file("kyo-stm"))
         Nil
       }
     ),
+    // Test / javaOptions += "-Dkyo.scheduler.enableTopConsoleMs=10000",
   )
 
 lazy val commonSettingsJvm = Seq[Setting[_]](

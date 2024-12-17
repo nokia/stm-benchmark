@@ -135,17 +135,18 @@ object ZstmSolver {
             w = board.width,
             initial = 0,
           ).commit.flatMap { depth =>
+            val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes))
             val tasks = board.routes.map { route =>
               solveOneRoute(depth, route).map(route -> _)
             }
-            val solveInParallel = if (parLimit == 1) {
+            val solveAll = if (pl == 1) {
               ZIO.mergeAll(tasks)(zero = Map.empty[Route, List[Point]]) { _ + _ }
             } else {
-              ZIO.withParallelism(parLimit) {
+              ZIO.withParallelism(pl) {
                 ZIO.mergeAllPar(tasks)(zero = Map.empty[Route, List[Point]]) { _ + _ }
               }
             }
-            solveInParallel.flatMap { solution =>
+            solveAll.flatMap { solution =>
               debugF("Full solution:\n" + board.debugSolution(solution, debug = log)).as(Solver.Solution(solution))
             }
           }

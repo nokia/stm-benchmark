@@ -39,7 +39,8 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
       newTMatrix<Int>(board.height(), board.width(), 0)
     }
 
-    val solutions: List<Tuple2<Route, List<Point>>> = if (parLimit == 1) {
+    val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes()))
+    val solutions: List<Tuple2<Route, List<Point>>> = if (pl == 1) {
       val itr = board.routes().iterator()
       val solvedRoutes: Builder<Tuple2<Route, List<Point>>, List<Tuple2<Route, List<Point>>>> =
         List.newBuilder()
@@ -53,7 +54,7 @@ class ArrowStmSolverCrt(internal val parLimit: Int, internal val log: Boolean) {
       val itr: Iterator<Route> = kotlinIteratorFromScala(board.routes().iterator())
       val routesFlow: Flow<Route> = itr.asFlow()
       val solutionsFlow: Flow<Tuple2<Route, List<Point>>> = routesFlow.flatMapMerge(
-        concurrency = parLimit,
+        concurrency = pl,
         transform = { route: Route ->
           flow {
             val solution: List<Point> = solveOneRoute(board, obstructed, depth, route)
