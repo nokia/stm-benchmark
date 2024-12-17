@@ -350,9 +350,7 @@ object Benchmarks {
     protected def mkSolver(parLimit: Int): Task[Solver[Task]]
 
     private[this] final def unsafeRunSync[A](task: Task[A]): A = {
-      zio.Unsafe.unsafe { implicit u =>
-        this.runtime.unsafe.run(task).getOrThrow()
-      }
+      this.runtime.unsafe.run(task)(zio.Trace.empty, zio.Unsafe).getOrThrow()(scala.<:<.refl, zio.Unsafe)
     }
 
     final override def runSolveTask(): Solver.Solution = {
