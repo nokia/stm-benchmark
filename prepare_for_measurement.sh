@@ -82,4 +82,4 @@ fi
 
 # Print temperature:
 echo "Temperature:"
-sensors "*-isa-*" | grep "CPU:"
+sensors "*-isa-*" | grep -e "CPU:" -e "Core"
