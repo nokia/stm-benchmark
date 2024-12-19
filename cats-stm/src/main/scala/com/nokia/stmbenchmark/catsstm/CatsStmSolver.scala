@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package catsstm
 
-import cats.data.{ Chain, NonEmptyChain }
+import cats.data.NonEmptyChain
 import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Console
@@ -44,7 +44,7 @@ object CatsStmSolver {
 
             def solveOneRoute(depth: TMatrix[F, stm.type, Int], route: Route): F[List[Point]] = {
               val txn = for {
-                _ <- if (log) debug(s"Solving $route") else Txn.monadForTxn.unit
+                _ <- if (log) debug(s"Solving $route") else stm.unit
                 cost <- expand(depth, route)
                 costStr <- cost.debug(debug = log)(i => f"$i%2s")
                 _ <- debug("Cost after `expand`:\n" + costStr)
@@ -63,28 +63,29 @@ object CatsStmSolver {
               TMatrix[F, stm.type, Int](stm)(h = depth.height, w = depth.width, 0).flatMap { cost =>
                 cost(row = startPoint.y, col = startPoint.x).set(1).flatMap { _ =>
 
-                  def go(wavefront: Chain[Point]): Txn[Chain[Point]] = {
-                    val mkNewWf = wavefront.foldMapM[Txn, Chain[Point]] { point =>
+                  def go(wavefront: List[Point]): Txn[List[Point]] = {
+                    val mkNewWf = wavefront.traverse { point =>
                       cost(row = point.y, col = point.x).get.flatMap { pointCost =>
-                        board.adjacentPoints(point).foldMapM[Txn, Chain[Point]] { adjacent =>
+                        board.adjacentPoints(point).traverse[Txn, List[Point]] { adjacent =>
                           if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                             // can't go in that direction
-                            stm.pure(Chain.empty)
+                            stm.pure(Nil)
                           } else {
                             cost(row = adjacent.y, col = adjacent.x).get.flatMap { currentCost =>
                               depth(row = adjacent.y, col = adjacent.x).get.flatMap { d =>
                                 val newCost = pointCost + Board.cost(d)
                                 if ((currentCost == 0) || (newCost < currentCost)) {
-                                  cost(row = adjacent.y, col = adjacent.x).set(newCost).as(Chain(adjacent))
+                                  cost(row = adjacent.y, col = adjacent.x).set(newCost).as(adjacent :: Nil)
                                 } else {
-                                  stm.pure(Chain.empty)
+                                  stm.pure(Nil)
                                 }
                               }
                             }
                           }
-                        }
+                        }.map(_.flatten)
                       }
-                    }
+                    }.map(_.flatten)
+
 
                     mkNewWf.flatMap { newWavefront =>
                       if (newWavefront.isEmpty) {
@@ -115,7 +116,7 @@ object CatsStmSolver {
                     }
                   }
 
-                  go(Chain(startPoint)).as(cost)
+                  go(startPoint :: Nil).as(cost)
                 }
               }
             }

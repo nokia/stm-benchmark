@@ -104,7 +104,7 @@ object ZstmSolver {
                   }
                 }
 
-                go(List(startPoint)).as(cost)
+                go(startPoint :: Nil).as(cost)
               }
             }
           }
