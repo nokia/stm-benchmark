@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package choam
 
-import cats.data.{ Chain, NonEmptyChain }
+import cats.data.NonEmptyChain
 import cats.syntax.all._
 import cats.effect.syntax.all._
 import cats.effect.Async
@@ -82,28 +82,28 @@ object RxnSolver {
           RefMatrix[Int](depth.height, depth.width, 0).flatMapF { cost =>
             cost(startPoint.y, startPoint.x).set.provide(1).flatMapF { _ =>
 
-              def go(wavefront: Chain[Point]): Axn[Chain[Point]] = {
-                val mkNewWf = wavefront.foldMapM[Axn, Chain[Point]] { point =>
+              def go(wavefront: List[Point]): Axn[List[Point]] = {
+                val mkNewWf = wavefront.traverse { point =>
                   cost(point.y, point.x).get.flatMapF { pointCost =>
-                    board.adjacentPoints(point).foldMapM[Axn, Chain[Point]] { adjacent =>
+                    board.adjacentPoints(point).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
-                        Rxn.pure(Chain.empty)
+                        Rxn.pure(Nil)
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           depth(adjacent.y, adjacent.x).get.flatMapF { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(Chain(adjacent))
+                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(adjacent :: Nil)
                             } else {
-                              Rxn.pure(Chain.empty)
+                              Rxn.pure(Nil)
                             }
                           }
                         }
                       }
-                    }
+                    }.map(_.flatten)
                   }
-                }
+                }.map(_.flatten)
 
                 mkNewWf.flatMap { newWavefront =>
                   if (newWavefront.isEmpty) {
@@ -134,7 +134,7 @@ object RxnSolver {
                 }
               }
 
-              go(Chain(startPoint)).as(cost)
+              go(startPoint :: Nil).as(cost)
             }
           }
         }
