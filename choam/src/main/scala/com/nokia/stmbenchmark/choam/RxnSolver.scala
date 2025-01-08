@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package choam
 
-import cats.data.NonEmptyChain
+import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
 import cats.effect.syntax.all._
 import cats.effect.Async
@@ -82,21 +82,21 @@ object RxnSolver {
           RefMatrix[Int](depth.height, depth.width, 0).flatMapF { cost =>
             cost(startPoint.y, startPoint.x).set.provide(1).flatMapF { _ =>
 
-              def go(wavefront: List[Point]): Axn[List[Point]] = {
+              def go(wavefront: Chain[Point]): Axn[Chain[Point]] = {
                 val mkNewWf = wavefront.traverse { point =>
                   cost(point.y, point.x).get.flatMapF { pointCost =>
-                    board.adjacentPoints(point).traverse { adjacent =>
+                    Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
-                        Rxn.pure(Nil)
+                        Rxn.pure(Chain.empty)
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           depth(adjacent.y, adjacent.x).get.flatMapF { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(adjacent :: Nil)
+                              cost(adjacent.y, adjacent.x).set.provide(newCost).as(Chain(adjacent))
                             } else {
-                              Rxn.pure(Nil)
+                              Rxn.pure(Chain.empty)
                             }
                           }
                         }
@@ -134,7 +134,7 @@ object RxnSolver {
                 }
               }
 
-              go(startPoint :: Nil).as(cost)
+              go(Chain(startPoint)).as(cost)
             }
           }
         }
