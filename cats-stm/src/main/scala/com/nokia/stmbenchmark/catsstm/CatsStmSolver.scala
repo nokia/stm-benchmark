@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package catsstm
 
-import cats.data.NonEmptyChain
+import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Console
@@ -63,21 +63,21 @@ object CatsStmSolver {
               TMatrix[F, stm.type, Int](stm)(h = depth.height, w = depth.width, 0).flatMap { cost =>
                 cost(row = startPoint.y, col = startPoint.x).set(1).flatMap { _ =>
 
-                  def go(wavefront: List[Point]): Txn[List[Point]] = {
+                  def go(wavefront: Chain[Point]): Txn[Chain[Point]] = {
                     val mkNewWf = wavefront.traverse { point =>
                       cost(row = point.y, col = point.x).get.flatMap { pointCost =>
-                        board.adjacentPoints(point).traverse[Txn, List[Point]] { adjacent =>
+                        Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                           if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                             // can't go in that direction
-                            stm.pure(Nil)
+                            stm.pure(Chain.empty)
                           } else {
                             cost(row = adjacent.y, col = adjacent.x).get.flatMap { currentCost =>
                               depth(row = adjacent.y, col = adjacent.x).get.flatMap { d =>
                                 val newCost = pointCost + Board.cost(d)
                                 if ((currentCost == 0) || (newCost < currentCost)) {
-                                  cost(row = adjacent.y, col = adjacent.x).set(newCost).as(adjacent :: Nil)
+                                  cost(row = adjacent.y, col = adjacent.x).set(newCost).as(Chain(adjacent))
                                 } else {
-                                  stm.pure(Nil)
+                                  stm.pure(Chain.empty)
                                 }
                               }
                             }
@@ -116,7 +116,7 @@ object CatsStmSolver {
                     }
                   }
 
-                  go(startPoint :: Nil).as(cost)
+                  go(Chain(startPoint)).as(cost)
                 }
               }
             }
