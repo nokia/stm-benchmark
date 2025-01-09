@@ -304,5 +304,13 @@ lazy val dependencies = new {
 addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")
 addCommandAlias("validate", ";staticAnalysis;test")
 
-// profiling: `-prof jfr`
-addCommandAlias("measurePerformance", "bench/jmh:run -foe true -rf json -rff results.json .*")
+// We always want some JMH arguments, so we define an alias for them:
+addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json")
+
+// For big boards, we want to run JMH in single-shot mode:
+addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -bm ss -to 1hr -f 1")
+
+// Other common JMH arguments:
+// params, e.g.: `-p board=mainboard.txt`
+// output, e.g.: `-rff results.json`
+// profiling, e.g.: `-prof jfr`
