@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package kyostm
 
-import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule }
+import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule, Flat, Frame, Meter }
 
 import common.{ Board, BoolMatrix, Point, Route, Solver }
 
@@ -32,6 +32,17 @@ object KyoStmSolver {
       private[this] final def debug(msg: String): Unit < IO = {
         if (log) IO { println(msg) }
         else ()
+      }
+
+      /** Like `kyo.Async.parallel`, but without the grouping */
+      private[this] final def parallelN[A: Flat](parallelism: Int)(tasks: Seq[A < (Abort[Throwable] & Async)])(
+        implicit frame: Frame
+      ): Seq[A] < (Abort[Throwable] & Async) = {
+        Meter.initSemaphore(concurrency = parallelism, reentrant = false).map { semaphore =>
+          Async.parallelUnbounded(tasks.map { task =>
+            semaphore.run(task)
+          })
+        }
       }
 
       final override def solve(board: Board.Normalized): Solver.Solution < (Async & Abort[Throwable]) = {
@@ -157,7 +168,7 @@ object KyoStmSolver {
           val solveAll = if (pl == 1) {
             Kyo.foreach(board.routes)(solveOne)
           } else {
-            Async.parallel(parallelism = pl)(board.routes.map(solveOne))
+            parallelN(parallelism = pl)(board.routes.map(solveOne))
           }
           solveAll.map { solutions =>
             val solution = Map(solutions: _*)
