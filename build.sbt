@@ -308,7 +308,7 @@ addCommandAlias("validate", ";staticAnalysis;test")
 addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json")
 
 // For big boards, we want to run JMH in single-shot mode:
-addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -bm ss -to 1hr -f 1")
+addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -bm ss -to 3hr -f 1")
 
 // Other common JMH arguments:
 // params, e.g.: `-p board=mainboard.txt`
