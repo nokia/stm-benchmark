@@ -6,7 +6,7 @@
 
 // Scala versions:
 val scala2 = "2.13.15"
-val scala3 = "3.5.2"
+val scala3 = "3.6.2"
 
 val TestInternal = "test-internal"
 
@@ -262,8 +262,8 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.5.7"
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.14"
-  val kyoVersion = "0.15.1"
-  val choamVersion = "0.4.10-56-21d15ba"
+  val kyoVersion = "0.16.1"
+  val choamVersion = "0.4.10-67-f77a3c7"
   val fs2Version = "3.11.0"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"

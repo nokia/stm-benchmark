@@ -9,6 +9,7 @@ package benchmarks
 
 import scala.annotation.nowarn
 
+import cats.effect.kernel.Async
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 
@@ -254,9 +255,16 @@ object Benchmarks {
     }
   }
 
-  trait RxnStateMixin {
+  trait RxnStateMixin[F[_]] {
 
-    protected final def createSolver[F[_] : cats.effect.Async](parLimit: Int, strategy: String): F[Solver[F]] = {
+    import dev.tauri.choam.async.AsyncReactive
+
+    protected[this] implicit def asyncInstance: Async[F]
+
+    private[this] implicit val asyncReactiveInstance: AsyncReactive[F] =
+      AsyncReactive.forAsync[F] // TODO: this is deprecated
+
+    protected final def createSolver(parLimit: Int, strategy: String): F[Solver[F]] = {
       val str = strategy match {
         case "spin" =>
           RxnSolver.spinStrategy
@@ -272,26 +280,32 @@ object Benchmarks {
   }
 
   @State(Scope.Benchmark)
-  class RxnOnCeState extends IOState with RxnStateMixin {
+  class RxnOnCeState extends IOState with RxnStateMixin[IO] {
 
     // @Param(Array("spin", "cede", "sleep"))
     protected[this] var strategy: String =
       "sleep"
 
+    protected[this] implicit final override def asyncInstance: Async[IO] =
+      IO.asyncForIO
+
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      this.createSolver[IO](parLimit, this.strategy)
+      this.createSolver(parLimit, this.strategy)
     }
   }
 
   @State(Scope.Benchmark)
-  class RxnOnZioState extends ZioState with RxnStateMixin {
+  class RxnOnZioState extends ZioState with RxnStateMixin[Task] {
 
     // @Param(Array("spin", "cede", "sleep"))
     protected[this] var strategy: String =
       "sleep"
 
+    protected[this] implicit final override def asyncInstance: Async[Task] =
+      zio.interop.catz.asyncInstance
+
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
-      this.createSolver[Task](parLimit, this.strategy)(zio.interop.catz.asyncInstance)
+      this.createSolver(parLimit, this.strategy)
     }
   }
 

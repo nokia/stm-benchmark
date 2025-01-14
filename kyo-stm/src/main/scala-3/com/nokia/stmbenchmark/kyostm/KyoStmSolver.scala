@@ -26,7 +26,7 @@ object KyoStmSolver {
     parLimit: Int,
     log: Boolean,
     retrySchedule: Schedule = defaultRetrySchedule,
-  ): Solver[<[*, Async & Abort[Throwable]]] < Async = {
+  ): Solver[<[*, Async & Abort[Throwable]]] < IO = IO {
     new Solver[<[*, Async & Abort[Throwable]]] {
 
       private[this] final def debug(msg: String): Unit < IO = {

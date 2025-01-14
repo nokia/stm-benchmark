@@ -34,13 +34,10 @@ object RxnSolver {
     parLimit: Int,
     log: Boolean,
     strategy: RetryStrategy = spinStrategy,
-  )(implicit F: Async[F]): F[Solver[F]] = {
+  )(implicit F: Async[F], ar: AsyncReactive[F]): F[Solver[F]] = {
     val cons = Console.make[F]
     val debugStrategy = if (log) cons.println(strategy) else F.unit
     debugStrategy *> F.pure(new Solver[F] {
-
-      private[this] implicit val reactive: AsyncReactive[F] =
-        AsyncReactive.forAsync[F]
 
       private[this] val _c =
         cons
@@ -72,7 +69,7 @@ object RxnSolver {
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
             _ <- lay(depth, solution)
           } yield solutionList
-          reactive.applyAsync(act, null, runConfig)
+          ar.applyAsync(act, null, runConfig)
         }
 
         def expand(depth: RefMatrix[Int], route: Route): Axn[RefMatrix[Int]] = {

@@ -11,7 +11,7 @@ import kyo.{ Async, Abort, STM }
 
 import munit.FunSuite
 
-final class TMatrixSpec extends FunSuite with KyoInterop {
+final class TMatrixSpec extends FunSuite with KyoInteropMunit {
 
   testKyo("test1") {
     for {

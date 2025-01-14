@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import scala.concurrent.duration._
 
-import kyo.{ <, AllowUnsafe, Abort, Async, Cats => KyoCats, IO }
+import kyo.{ <, Abort, Async, Cats => KyoCats, IO }
 import cats.effect.{ IO => CatsIO }
 import fs2.Stream
 
@@ -20,23 +20,20 @@ import munit.FunSuite
 
 import common.{ Board, Solver, MunitUtils }
 
-final class KyoStmSolverSpec extends FunSuite with KyoInterop with MunitUtils {
+final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUtils {
 
   final override def munitTimeout =
     180.minutes
 
   private[this] lazy val solver: Solver[<[*, Async & Abort[Throwable]]] = {
-    import AllowUnsafe.embrace.danger
-    IO.Unsafe.run(
-      Abort.run(Async.runAndBlock(kyo.Duration.Infinity)(
-        IO { Runtime.getRuntime().availableProcessors() }.map { numCpu =>
-          KyoStmSolver(
-            parLimit = numCpu,
-            log = false,
-          )
-        }
-      ))
-    ).eval.fold(err => throw err.getFailure)(s => s)
+    unsafeRunSyncIO(
+      IO { Runtime.getRuntime().availableProcessors() }.map { numCpu =>
+        KyoStmSolver(
+          parLimit = numCpu,
+          log = false,
+        )
+      }
+    )
   }
 
   protected def normalize(b: Board): Board.Normalized = { // TODO: deduplicate

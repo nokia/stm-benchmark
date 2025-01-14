@@ -25,11 +25,11 @@ abstract class BenchmarksScalaVersionSpecific {
 
 object BenchmarksScalaVersionSpecific {
 
-  @State(Scope.Benchmark)
-  class KyoStmState extends Benchmarks.AbstractState {
+  import kyo.{ <, Async, Abort }
+  import kyostm.{ KyoStmSolver, KyoInterop }
 
-    import kyo.{ <, Async, Abort, IO }
-    import kyostm.KyoStmSolver
+  @State(Scope.Benchmark)
+  class KyoStmState extends Benchmarks.AbstractState with KyoInterop {
 
     @Param(Array("0")) // 0 means availableProcessors()
     @nowarn("msg=unset private variable")
@@ -44,21 +44,8 @@ object BenchmarksScalaVersionSpecific {
     private[this] var solveTask: Solver.Solution < (Async & Abort[Throwable]) =
       null.asInstanceOf[Solver.Solution]
 
-    private[this] final def unsafeRunSync[A : kyo.Flat](task: <[A, Async & Abort[Throwable]]): A = {
-      import kyo.AllowUnsafe.embrace.danger
-      val task2 = Async.runAndBlock(kyo.Duration.Infinity)(task)
-      val task3 = Abort.run(task2)
-      val result = IO.Unsafe.run(task3).eval
-      result.fold(err => throw err.getFailure)(a => a)
-    }
-
     final override def runSolveTask(): Solver.Solution = {
-      import kyo.AllowUnsafe.embrace.danger
-      IO.Unsafe.run(
-        Abort.run(
-          Async.run(this.solveTask).flatMap(_.block(kyo.Duration.Infinity))
-        ).map(_.getOrThrow)
-      ).eval.getOrThrow
+      unsafeForkAndRunSync(this.solveTask)
     }
 
     @Setup
@@ -73,7 +60,7 @@ object BenchmarksScalaVersionSpecific {
       val plm = this.parLimitMultiplier
       val n = pl * plm
       require(n > 0)
-      val solver = unsafeRunSync(KyoStmSolver(parLimit = n, log = false))
+      val solver = unsafeRunSyncIO(KyoStmSolver(parLimit = n, log = false))
       this.solveTask = repeatKyo(solver.solve(this.normalizedBoard), this.normalizedRepeat)
     }
 
