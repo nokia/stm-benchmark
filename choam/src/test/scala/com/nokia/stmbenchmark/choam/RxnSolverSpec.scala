@@ -19,7 +19,7 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
 
   override protected def createSolver: IO[Solver[IO]] = {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      AsyncReactive.forAsyncRes[IO].allocated.map(_._1).flatMap { implicit ar =>
+      AsyncReactive.forAsyncRes[IO].allocated.map(_._1).flatMap { implicit ar => // TODO: we're leaking here
         RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
       }
     }
@@ -38,7 +38,6 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
     printJmxInfo()
   }
 
-  // TODO: this finds multiple EmcasJmxStats, and prints info from all of them
   private def printJmxInfo(): Unit = {
     val mbs = java.lang.management.ManagementFactory.getPlatformMBeanServer()
     val names = mbs.queryNames(

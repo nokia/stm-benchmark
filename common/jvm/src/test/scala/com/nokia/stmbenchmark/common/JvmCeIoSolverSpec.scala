@@ -13,10 +13,7 @@ import munit.{ Location, TestOptions }
 
 abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
 
-  private[this] lazy val solver: Solver[IO] =
-    this.createSolver.unsafeRunSync()
-
-  protected def testFromResource(
+  protected[this] def testFromResource(
     resourceNameAndOpts: TestOptions,
     restrict: Int = 0,
   )(implicit loc: Location): Unit = {
