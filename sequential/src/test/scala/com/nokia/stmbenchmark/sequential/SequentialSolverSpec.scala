@@ -7,15 +7,15 @@
 package com.nokia.stmbenchmark
 package sequential
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
 
 import common.JvmCeIoSolverSpec
 import common.Solver
 
 final class SequentialSolverSpec extends JvmCeIoSolverSpec {
 
-  protected override def createSolver: IO[Solver[IO]] =
-    SequentialSolver[IO](log = false)
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] =
+    Resource.eval(SequentialSolver[IO](log = false))
 
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))

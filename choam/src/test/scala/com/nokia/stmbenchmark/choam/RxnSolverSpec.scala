@@ -9,6 +9,7 @@ package choam
 
 import cats.syntax.all._
 import cats.effect.IO
+import cats.effect.kernel.Resource
 
 import dev.tauri.choam.async.AsyncReactive
 
@@ -17,10 +18,12 @@ import common.Solver
 
 final class RxnSolverSpec extends JvmCeIoSolverSpec {
 
-  override protected def createSolver: IO[Solver[IO]] = {
-    IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      AsyncReactive.forAsyncRes[IO].allocated.map(_._1).flatMap { implicit ar => // TODO: we're leaking here
-        RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
+    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
+      AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
+        Resource.eval(
+          RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
+        )
       }
     }
   }

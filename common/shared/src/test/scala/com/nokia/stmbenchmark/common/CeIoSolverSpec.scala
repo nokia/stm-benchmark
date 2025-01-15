@@ -19,11 +19,11 @@ import munit.{ CatsEffectSuite, Location, AnyFixture }
 
 abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
 
-  protected[this] def createSolver: IO[Solver[IO]]
+  protected[this] def solverRes: Resource[IO, Solver[IO]]
 
   private[this] val _solver = ResourceSuiteLocalFixture[Solver[IO]](
     name = "solver",
-    resource = Resource.eval(this.createSolver)
+    resource = this.solverRes
   )
 
   override def munitFixtures: Seq[AnyFixture[_]] =

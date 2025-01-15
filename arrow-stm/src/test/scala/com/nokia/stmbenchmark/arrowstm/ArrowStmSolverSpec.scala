@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package arrowstm
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
 import cats.effect.unsafe.IORuntime
 
 import common.Solver
@@ -20,7 +20,7 @@ final class ArrowStmSolverSpec extends JvmCeIoSolverSpec with KotlinInterop { in
   final override lazy val munitIORuntime: IORuntime =
     interop.ioRuntimeFromCoroutineDispatchers()
 
-  protected final override def createSolver: IO[Solver[IO]] = {
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = Resource.eval {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       ArrowStmSolver(
         parLimit = numCpu,

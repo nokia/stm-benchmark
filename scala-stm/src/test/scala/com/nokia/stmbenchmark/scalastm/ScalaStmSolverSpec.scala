@@ -7,14 +7,14 @@
 package com.nokia.stmbenchmark
 package scalastm
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
 
 import common.JvmCeIoSolverSpec
 import common.Solver
 
 final class ScalaStmSolverSpec extends JvmCeIoSolverSpec {
 
-  protected override def createSolver: IO[Solver[IO]] = {
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = Resource.eval {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       ScalaStmSolver[IO](parLimit = numCpu, log = false)
     }

@@ -9,7 +9,7 @@ package catsstm
 
 import scala.concurrent.duration._
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
 
 import common.JvmCeIoSolverSpec
 import common.Solver
@@ -19,10 +19,10 @@ final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
   final override def munitIOTimeout =
     180.minutes
 
-  protected override def createSolver: IO[Solver[IO]] = {
-    IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
+    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
       CatsStmSolver[IO](txnLimit = 2L * numCpu, parLimit = numCpu, log = false)
-    }
+    })
   }
 
   testFromResource("four_crosses.txt".tag(Verbose))
