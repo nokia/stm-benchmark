@@ -43,6 +43,7 @@ lazy val common = crossProject(JVMPlatform, JSPlatform)
   .jsSettings(commonSettingsJs)
   .settings(libraryDependencies ++= Seq(
     dependencies.fs2.value,
+    dependencies.catsEffectStd.value,
   ))
 
 lazy val benchmarks = project.in(file("benchmarks"))
@@ -274,7 +275,6 @@ lazy val dependencies = new {
   val catsKernel = Def.setting("org.typelevel" %%% "cats-kernel" % catsVersion)
   val catsCore = Def.setting("org.typelevel" %%% "cats-core" % catsVersion)
   val catsFree = Def.setting("org.typelevel" %%% "cats-free" % catsVersion)
-  val catsEffectKernel = Def.setting("org.typelevel" %%% "cats-effect-kernel" % catsEffectVersion)
   val catsEffectStd = Def.setting("org.typelevel" %%% "cats-effect-std" % catsEffectVersion)
   val catsEffectAll = Def.setting("org.typelevel" %%% "cats-effect" % catsEffectVersion)
   val catsEffectTestkit = Def.setting("org.typelevel" %%% "cats-effect-testkit" % catsEffectVersion)
