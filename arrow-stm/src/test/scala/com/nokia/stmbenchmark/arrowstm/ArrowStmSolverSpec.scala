@@ -22,7 +22,7 @@ final class ArrowStmSolverSpec extends JvmCeIoSolverSpec with KotlinInterop { in
 
   protected[this] final override def solverRes: Resource[IO, Solver[IO]] = Resource.eval {
     IO { Runtime.getRuntime().availableProcessors() }.flatMap { numCpu =>
-      ArrowStmSolver(
+      ArrowStmSolver[IO](
         parLimit = numCpu,
         log = false,
       )
