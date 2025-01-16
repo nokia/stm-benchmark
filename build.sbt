@@ -56,6 +56,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
     libraryDependencies ++= Seq(
       dependencies.choamProfiler.value,
       dependencies.zioCats.value,
+      dependencies.catsEffectAll.value,
     ),
   )
   .dependsOn(sequential)
@@ -107,6 +108,7 @@ lazy val choam = project.in(file("choam"))
   .settings(
     libraryDependencies ++= Seq(
       dependencies.choam.value,
+      dependencies.catsEffectStd.value,
     ),
     Test / javaOptions += "-Ddev.tauri.choam.stats=true",
   )
@@ -259,12 +261,12 @@ lazy val commonSettings = Seq[Setting[_]](
 lazy val dependencies = new {
 
   val catsVersion = "2.12.0"
-  val catsEffectVersion = "3.5.7"
+  val catsEffectVersion = "3.6.0-RC1"
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.14"
   val kyoVersion = "0.16.1"
   val choamVersion = "0.4.10-68-6f002f5"
-  val fs2Version = "3.11.0"
+  val fs2Version = "3.12.0-RC1"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
   val jmhVersion = "1.37"
