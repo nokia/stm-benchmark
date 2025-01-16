@@ -28,9 +28,9 @@ final class CatsStmSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
-  testFromResource("sparseshort.txt")
+  testFromResource("sparseshort.txt", restrict = 2)
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt", restrict = 2) // unrestricted takes approx. 7 mins
-  testFromResource("mainboard.txt", restrict = 5) // unrestricted takes approx. 1h 20m
-  testFromResource("memboard.txt", restrict = 4) // unrestricted takes approx. 55 mins
+  testFromResource("sparselong.txt", restrict = 2)
+  testFromResource("mainboard.txt", restrict = 6)
+  testFromResource("memboard.txt", restrict = 5)
 }

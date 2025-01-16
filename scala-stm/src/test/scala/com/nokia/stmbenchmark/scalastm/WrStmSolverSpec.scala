@@ -26,6 +26,6 @@ final class WrStmSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt")
-  testFromResource("memboard.txt")
+  testFromResource("mainboard.txt", restrict = 2)
+  testFromResource("memboard.txt", restrict = 2)
 }

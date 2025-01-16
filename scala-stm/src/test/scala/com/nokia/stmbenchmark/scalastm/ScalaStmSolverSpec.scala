@@ -26,6 +26,6 @@ final class ScalaStmSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
   testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt")
+  testFromResource("mainboard.txt", restrict = 1)
   testFromResource("memboard.txt")
 }

@@ -124,9 +124,9 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
-  testFromResource("sparseshort.txt")
+  testFromResource("sparseshort.txt", restrict = 1)
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt", restrict = 4) // unrestricted takes approx. 50 mins
-  testFromResource("memboard.txt", restrict = 4) // unrestricted takes approx. 1 hour
+  testFromResource("sparselong.txt", restrict = 2)
+  testFromResource("mainboard.txt", restrict = 5)
+  testFromResource("memboard.txt", restrict = 4)
 }

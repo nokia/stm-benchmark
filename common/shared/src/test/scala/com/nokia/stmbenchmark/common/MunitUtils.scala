@@ -11,19 +11,55 @@ import munit.{ Tag, Location, TestOptions }
 
 trait MunitUtils { this: munit.FunSuite =>
 
+  private[this] final case class ExpectedResult(
+    maxDepth: Int,
+    totalCost: Int,
+  )
+
   protected val DontCare = -2
 
-  private[this] val expectedDepthsAndCosts = Map[String, (Int, Int)](
-    "empty.txt" -> (0, 0),
-    "minimal.txt" -> (2, 24),
-    "four_crosses.txt" -> (DontCare, DontCare), // TODO
-    "testBoard.txt" -> (4, 3307),
-    "sparseshort_mini.txt" -> (1, 990),
-    "sparseshort.txt" -> (1, 9251),
-    "sparselong_mini.txt" -> (DontCare, DontCare), // TODO
-    "sparselong.txt" -> (1, 16849),
-    "mainboard.txt" -> (3, 174128),
-    "memboard.txt" -> (3, 162917),
+  /** board -> (restrict -> expectedResult) */
+  private[this] val expectedDepthsAndCosts = Map[String, Map[Int, ExpectedResult]](
+    "empty.txt" -> Map(0 -> ExpectedResult(0, 0)),
+    "minimal.txt" -> Map(0 -> ExpectedResult(2, 24)),
+    "four_crosses.txt" -> Map(
+      0 -> ExpectedResult(2, 28),
+    ),
+    "testBoard.txt" -> Map(0 -> ExpectedResult(4, 3307)),
+    "sparseshort_mini.txt" -> Map(0 -> ExpectedResult(1, 990)),
+    "sparseshort.txt" -> Map(
+      0 -> ExpectedResult(1, 9251),
+      1 -> ExpectedResult(1, 4625),
+      2 -> ExpectedResult(1, 2312),
+    ),
+    "sparselong_mini.txt" -> Map(
+      0 -> ExpectedResult(1, 1810),
+    ),
+    "sparselong.txt" -> Map(
+      0 -> ExpectedResult(1, 16849),
+      1 -> ExpectedResult(1, 8134),
+      2 -> ExpectedResult(1, 4067),
+      3 -> ExpectedResult(1, 1743),
+    ),
+    "mainboard.txt" -> Map(
+      0 -> ExpectedResult(3, 174128),
+      1 -> ExpectedResult(3, 81015),
+      2 -> ExpectedResult(2, 41392),
+      3 -> ExpectedResult(2, 20713),
+      4 -> ExpectedResult(2, 10786),
+      5 -> ExpectedResult(2, 6440),
+      6 -> ExpectedResult(2, 2659),
+      7 -> ExpectedResult(1, 1271),
+      8 -> ExpectedResult(1, 389),
+    ),
+    "memboard.txt" -> Map(
+      0 -> ExpectedResult(3, 162917),
+      1 -> ExpectedResult(3, 77378),
+      2 -> ExpectedResult(3, 38959),
+      4 -> ExpectedResult(2, 8164),
+      5 -> ExpectedResult(2, 4074),
+      6 -> ExpectedResult(2, 2212),
+    ),
   )
 
   protected val Verbose = new Tag("Verbose")
@@ -51,19 +87,22 @@ trait MunitUtils { this: munit.FunSuite =>
     // check solution validity:
     this.assert(board.isSolutionValid(solution.routes))
     // check expected results:
-    if (board.restricted == 0) {
-      val expMd = expMaxDepth match {
-        case -1 => expectedDepthsAndCosts(testOpts.name)._1
-        case md => md
-      }
-      if (expMd != DontCare) {
-        this.assert(solution.maxDepth <= expMd)
-      }
-      val expTc = expTotalCost match {
-        case -1 => expectedDepthsAndCosts(testOpts.name)._2
-        case tc => tc
-      }
-      if (expTc != DontCare) {
+    val expMd = expMaxDepth match {
+      case -1 => expectedDepthsAndCosts(testOpts.name).get(board.restricted).map(_.maxDepth)
+      case md => Some(md)
+    }
+    expMd match {
+      case Some(expMd) =>
+        this.assert(solution.maxDepth <= expMd, s"maxDepth should be <= ${expMd}, but was ${solution.maxDepth}")
+      case None =>
+        fail(s"Not found maxDepth for ${testOpts.name} (restrict = ${board.restricted})")
+    }
+    val expTc = expTotalCost match {
+      case -1 => expectedDepthsAndCosts(testOpts.name).get(board.restricted).map(_.totalCost)
+      case tc => Some(tc)
+    }
+    expTc match {
+      case Some(expTc) =>
         // total cost is not always the same
         // (due to nondeterminism), but should
         // be approximately equal:
@@ -73,7 +112,8 @@ trait MunitUtils { this: munit.FunSuite =>
           (solution.totalCost <= maxTc) && (solution.totalCost >= minTc),
           s"totalCost should be between ${minTc} and ${maxTc}, but was ${solution.totalCost}"
         )
-      }
-    } // else: restricted board, results should be different
+      case None =>
+        fail(s"Not found totalCost for ${testOpts.name} (restrict = ${board.restricted})")
+    }
   }
 }

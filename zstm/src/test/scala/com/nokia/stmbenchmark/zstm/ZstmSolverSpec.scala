@@ -135,7 +135,7 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt", restrict = 3) // unrestricted takes approx. 50 mins
-  testFromResource("mainboard.txt", restrict = 7) // unrestricted takes almost 5 hours
-  testFromResource("memboard.txt", restrict = 5) // unrestricted takes almost 2 hours
+  testFromResource("sparselong.txt", restrict = 3)
+  testFromResource("mainboard.txt", restrict = 8)
+  testFromResource("memboard.txt", restrict = 6)
 }
