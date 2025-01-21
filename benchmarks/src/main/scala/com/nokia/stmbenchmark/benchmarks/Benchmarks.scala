@@ -179,8 +179,8 @@ object Benchmarks {
 
     /** Subclasses may override if they need something different */
     protected def createIoRuntime(): IORuntime = {
-      cats.effect.unsafe.IORuntimeBuilder( // ).setPollingSystem(
-        // cats.effect.unsafe.SleepSystem
+      cats.effect.unsafe.IORuntimeBuilder().setPollingSystem(
+        cats.effect.unsafe.SleepSystem
       ).build()
     }
 
