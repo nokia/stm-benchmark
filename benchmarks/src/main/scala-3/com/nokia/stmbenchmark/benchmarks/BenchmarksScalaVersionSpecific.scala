@@ -66,7 +66,7 @@ object BenchmarksScalaVersionSpecific {
 
     private[this] final def repeatKyo[A](tsk: <[A, Async & Abort[Throwable]], n: Int): A < (Async & Abort[Throwable]) = {
       if (n <= 1) tsk
-      else tsk.map { _ => repeatKyo(tsk, n - 1) }
+      else tsk.andThen(repeatKyo(tsk, n - 1))
     }
   }
 }
