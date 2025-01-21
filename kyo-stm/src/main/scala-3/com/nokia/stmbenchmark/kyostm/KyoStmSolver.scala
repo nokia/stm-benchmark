@@ -92,7 +92,6 @@ object KyoStmSolver {
                           }
                         }
                       }
-
                     }.map(_.flattenChunk)
                   }
                 }.map(_.flattenChunk)
