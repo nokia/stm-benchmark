@@ -5,8 +5,8 @@
  */
 
 // Scala versions:
-val scala2 = "2.13.15"
-val scala3 = "3.6.2"
+val scala2 = "2.13.16"
+val scala3 = "3.6.3"
 
 val TestInternal = "test-internal"
 
