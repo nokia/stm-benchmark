@@ -128,10 +128,11 @@ object Benchmarks {
       val setupRuntime = cats.effect.unsafe.IORuntimeBuilder().build()
       try {
         val b = Board.fromResource[IO](this.board).unsafeRunSync()(setupRuntime)
-        val nb = b.normalize(this.seed)
+        val rng = new scala.util.Random(this.seed)
+        val nb = b.normalize(rng.nextLong())
         this.normalizedBoard = this.restrict match {
           case 0 => nb
-          case r => nb.restrict(r)
+          case r => nb.restrict(r, rng.nextLong())
         }
       } finally {
         setupRuntime.shutdown()

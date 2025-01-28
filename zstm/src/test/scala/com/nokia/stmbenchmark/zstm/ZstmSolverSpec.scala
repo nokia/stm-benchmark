@@ -54,15 +54,6 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
     }) :: super.munitValueTransforms
   }
 
-  protected def normalize(b: Board): Board.Normalized = { // TODO: deduplicate
-    val seed = if (b.routes.size > 240) {
-      42L
-    } else {
-      ThreadLocalRandom.current().nextLong()
-    }
-    b.normalize(seed)
-  }
-
   private def testFromResource(
     resourceNameAndOpts: TestOptions,
     restrict: Int = 0,
@@ -76,16 +67,17 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
     }
     test(resourceNameAndOpts.withName(nameForMunit)) {
       Board.fromResource[Task](resourceNameAndOpts.name).flatMap { board =>
-        val b = this.normalize(board).restrict(restrict)
-        solver.solve(b).flatMap { solution =>
-          ZIO.attempt {
-            checkSolutionInternal(
-              resourceNameAndOpts,
-              b,
-              solution,
-              expMaxDepth = expMaxDepth,
-              expTotalCost = expTotalCost,
-            )
+        ZIO.attempt { this.normalizeAndRestrict(board, restrict) }.flatMap { b =>
+          solver.solve(b).flatMap { solution =>
+            ZIO.attempt {
+              checkSolutionInternal(
+                resourceNameAndOpts,
+                b,
+                solution,
+                expMaxDepth = expMaxDepth,
+                expTotalCost = expTotalCost,
+              )
+            }
           }
         }
       }
@@ -93,9 +85,10 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
   }
 
   test("empty.txt") {
-    val b = this.normalize(Board.empty(10, 10))
-    solver.solve(b).flatMap { solution =>
-      ZIO.attempt { checkSolutionInternal("empty.txt", b, solution) }
+    ZIO.attempt { Board.empty(10, 10).normalize(ThreadLocalRandom.current().nextLong()) }.flatMap { b =>
+      solver.solve(b).flatMap { solution =>
+        ZIO.attempt { checkSolutionInternal("empty.txt", b, solution) }
+      }
     }
   }
 
@@ -115,16 +108,17 @@ final class ZstmSolverSpec extends FunSuite with MunitUtils {
       ).mkString("\n")
     )
     Board.fromStream(s).flatMap { board =>
-      val b = this.normalize(board)
-      solver.solve(b).flatMap { solution =>
-        ZIO.attempt {
-          checkSolutionInternal(
-            "minimal.txt".tag(Verbose),
-            b,
-            solution,
-            expMaxDepth = 2,
-            expTotalCost = 24,
-          )
+      ZIO.attempt { board.normalize(ThreadLocalRandom.current().nextLong()) }.flatMap { b =>
+        solver.solve(b).flatMap { solution =>
+          ZIO.attempt {
+            checkSolutionInternal(
+              "minimal.txt".tag(Verbose),
+              b,
+              solution,
+              expMaxDepth = 2,
+              expTotalCost = 24,
+            )
+          }
         }
       }
     }

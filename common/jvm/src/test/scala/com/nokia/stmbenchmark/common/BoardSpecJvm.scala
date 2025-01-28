@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package common
 
+import java.util.concurrent.ThreadLocalRandom
+
 import cats.effect.IO
 
 import munit.CatsEffectSuite
@@ -17,7 +19,7 @@ final class BoardSpecJvm extends CatsEffectSuite {
     def tst(resourceName: String): IO[Unit] = {
       Board.fromResource[IO](resourceName).flatMap { board =>
         IO(assert((board.height > 0) && (board.width > 0), clue = resourceName)) *> IO(
-          board.normalize() : Unit
+          board.normalize(ThreadLocalRandom.current().nextLong()) : Unit
         )
       }
     }

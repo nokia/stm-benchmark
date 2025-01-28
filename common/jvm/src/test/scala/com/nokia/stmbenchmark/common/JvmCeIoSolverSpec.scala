@@ -25,16 +25,17 @@ abstract class JvmCeIoSolverSpec extends CeIoSolverSpec {
     test(resourceNameAndOpts.withName(nameForMunit)) {
       val resourceName = resourceNameAndOpts.name
       Board.fromResource[IO](resourceName).flatMap { board =>
-        // get back on the WSTP before starting the
-        // solver (we'll hopefully not block any more):
-        val b = this.normalize(board).restrict(restrict)
-        IO.cede *> solver.solve(b).flatMap { solution =>
-          IO {
-            checkSolutionInternal(
-              resourceNameAndOpts,
-              b,
-              solution,
-            )
+        IO { this.normalizeAndRestrict(board, restrict) }.flatMap { b =>
+          // get back on the WSTP before starting the
+          // solver (we'll hopefully not block any more):
+          IO.cede *> solver.solve(b).flatMap { solution =>
+            IO {
+              checkSolutionInternal(
+                resourceNameAndOpts,
+                b,
+                solution,
+              )
+            }
           }
         }
       }

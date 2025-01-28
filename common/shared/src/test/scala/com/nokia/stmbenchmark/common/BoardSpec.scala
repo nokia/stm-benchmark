@@ -109,7 +109,7 @@ final class BoardSpec extends CatsEffectSuite {
       routes = List(Route(Point(2, 2), Point(7, 7)), Route(Point(7, 2), Point(2, 7))),
       restricted = 0,
     )
-    val r = b.restrict(1) // halve routes
+    val r = b.restrict(1, 42L) // halve routes
     val exp = Board.Normalized(
       10,
       10,

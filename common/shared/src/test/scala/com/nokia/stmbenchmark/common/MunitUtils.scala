@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package common
 
+import java.util.concurrent.ThreadLocalRandom
+
 import munit.{ Tag, Location, TestOptions }
 
 trait MunitUtils { this: munit.FunSuite =>
@@ -44,21 +46,21 @@ trait MunitUtils { this: munit.FunSuite =>
     "mainboard.txt" -> Map(
       0 -> ExpectedResult(3, 174128),
       1 -> ExpectedResult(3, 81015),
-      2 -> ExpectedResult(2, 41392),
+      2 -> ExpectedResult(2, 39100),
       3 -> ExpectedResult(2, 20713),
       4 -> ExpectedResult(2, 10786),
-      5 -> ExpectedResult(2, 6440),
-      6 -> ExpectedResult(2, 2659),
+      5 -> ExpectedResult(2, 5035),
+      6 -> ExpectedResult(2, 3376),
       7 -> ExpectedResult(1, 1271),
-      8 -> ExpectedResult(1, 389),
+      8 -> ExpectedResult(1, 1271),
     ),
     "memboard.txt" -> Map(
       0 -> ExpectedResult(3, 162917),
       1 -> ExpectedResult(3, 77378),
-      2 -> ExpectedResult(3, 38959),
-      4 -> ExpectedResult(2, 8164),
+      2 -> ExpectedResult(3, 36800),
+      4 -> ExpectedResult(2, 9008),
       5 -> ExpectedResult(2, 4074),
-      6 -> ExpectedResult(2, 2212),
+      6 -> ExpectedResult(2, 2479),
     ),
   )
 
@@ -66,6 +68,20 @@ trait MunitUtils { this: munit.FunSuite =>
 
   protected def println(s: String): Unit = { // subclasses may override
     Predef.println(s)
+  }
+
+  protected def normalizeAndRestrict(board: Board, restrict: Int): Board.Normalized = {
+    val seed = if (board.routes.size > 240) {
+      // The expected results for the larger
+      // boards are heavily dependent on how
+      // routes are removed and shuffled, so
+      // we don't vary these:
+      42L
+    } else {
+      ThreadLocalRandom.current().nextLong()
+    }
+    val rng = new scala.util.Random(seed)
+    board.normalize(rng.nextLong()).restrict(restrict, rng.nextLong())
   }
 
   protected def checkSolutionInternal(

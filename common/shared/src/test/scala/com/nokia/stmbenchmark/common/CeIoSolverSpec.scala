@@ -32,15 +32,6 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
   protected[this] def solver: Solver[IO] =
     _solver()
 
-  protected[this] def normalize(b: Board): Board.Normalized = {
-    val seed = if (b.routes.size > 240) {
-      42L
-    } else {
-      ThreadLocalRandom.current().nextLong()
-    }
-    b.normalize(seed)
-  }
-
   protected final def debug(msg: String): IO[Unit] =
     IO.consoleForIO.println(msg)
 
@@ -51,9 +42,10 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
     60.minutes
 
   test("empty.txt") {
-    val b = this.normalize(Board.empty(10, 10))
-    solver.solve(b).flatMap { solution =>
-      IO { checkSolutionInternal("empty.txt", b, solution) }
+    IO { Board.empty(10, 10).normalize(ThreadLocalRandom.current().nextLong()) }.flatMap { b =>
+      solver.solve(b).flatMap { solution =>
+        IO { checkSolutionInternal("empty.txt", b, solution) }
+      }
     }
   }
 
@@ -73,14 +65,15 @@ abstract class CeIoSolverSpec extends CatsEffectSuite with MunitUtils {
       ).mkString("\n")
     )
     Board.fromStream(s).flatMap { board =>
-      val b = this.normalize(board)
-      solver.solve(b).flatMap { solution =>
-        IO {
-          checkSolutionInternal(
-            "minimal.txt".tag(Verbose),
-            b,
-            solution,
-          )
+      IO { board.normalize(ThreadLocalRandom.current().nextLong()) }.flatMap { b =>
+        solver.solve(b).flatMap { solution =>
+          IO {
+            checkSolutionInternal(
+              "minimal.txt".tag(Verbose),
+              b,
+              solution,
+            )
+          }
         }
       }
     }

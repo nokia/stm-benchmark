@@ -123,10 +123,6 @@ final case class Board(
     this.isSolutionValid(routes.toList, solution)
   }
 
-  def normalize(): Board.Normalized = {
-    this.normalize(-8309089642316774578L)
-  }
-
   def normalize(seed: Long): Board.Normalized = {
     // normalize the board, by (pseudo-randomly, based
     // on `seed`) shuffling routes to reduce obvious
@@ -166,7 +162,7 @@ object Board extends BoardCompanionPlatform {
       this.isSolutionValid(routes, solution)
     }
 
-    final def restrict(rshift: Int): Normalized = {
+    final def restrict(rshift: Int, seed: Long): Normalized = { // TODO: use `seed`!!!
       if (rshift == 0) {
         this
       } else {

@@ -36,15 +36,6 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
     )
   }
 
-  protected def normalize(b: Board): Board.Normalized = { // TODO: deduplicate
-    val seed = if (b.routes.size > 240) {
-      42L
-    } else {
-      ThreadLocalRandom.current().nextLong()
-    }
-    b.normalize(seed)
-  }
-
   private def testFromResource(
     resourceNameAndOpts: TestOptions,
     restrict: Int = 0,
@@ -59,17 +50,18 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
     testKyo(resourceNameAndOpts.withName(nameForMunit)) {
       val loadBoard = KyoCats.get(Board.fromResource[CatsIO](resourceNameAndOpts.name))
       loadBoard.map { board =>
-        val b = this.normalize(board).restrict(restrict)
-        solver.solve(b).map { solution =>
-          IO {
-            Abort.catching[Throwable] {
-              checkSolutionInternal(
-                resourceNameAndOpts,
-                b,
-                solution,
-                expMaxDepth = expMaxDepth,
-                expTotalCost = expTotalCost,
-              )
+        IO { this.normalizeAndRestrict(board, restrict) }.map { b =>
+          solver.solve(b).map { solution =>
+            IO {
+              Abort.catching[Throwable] {
+                checkSolutionInternal(
+                  resourceNameAndOpts,
+                  b,
+                  solution,
+                  expMaxDepth = expMaxDepth,
+                  expTotalCost = expTotalCost,
+                )
+              }
             }
           }
         }
@@ -78,11 +70,12 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
   }
 
   testKyo("empty.txt") {
-    val b = this.normalize(Board.empty(10, 10))
-    solver.solve(b).map { solution =>
-      IO {
-        Abort.catching[Throwable] {
-          checkSolutionInternal("empty.txt", b, solution)
+    IO { Board.empty(10, 10).normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
+      solver.solve(b).map { solution =>
+        IO {
+          Abort.catching[Throwable] {
+            checkSolutionInternal("empty.txt", b, solution)
+          }
         }
       }
     }
@@ -104,17 +97,18 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
       ).mkString("\n")
     )
     KyoCats.get(Board.fromStream(s)).map { board =>
-      val b = this.normalize(board)
-      solver.solve(b).map { solution =>
-        IO {
-          Abort.catching[Throwable] {
-            checkSolutionInternal(
-              "minimal.txt".tag(Verbose),
-              b,
-              solution,
-              expMaxDepth = 2,
-              expTotalCost = 24,
-            )
+      IO { board.normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
+        solver.solve(b).map { solution =>
+          IO {
+            Abort.catching[Throwable] {
+              checkSolutionInternal(
+                "minimal.txt".tag(Verbose),
+                b,
+                solution,
+                expMaxDepth = 2,
+                expTotalCost = 24,
+              )
+            }
           }
         }
       }
