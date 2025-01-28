@@ -16,22 +16,21 @@ import cats.effect.kernel.{ Concurrent }
 
 import fs2.Stream
 import fs2.text
-import fs2.io.file.{ Files, Path }
 
 sealed abstract class AbstractBoard(
   height: Int,
   width: Int,
 ) {
 
-  def isPointOnBoard(p: Point): Boolean = {
+  private[common] final def isPointOnBoard(p: Point): Boolean = {
     (p.x >= 0) && (p.y >= 0) && (p.x < width) && (p.y < height)
   }
 
-  def isRouteOnBoard(r: Route): Boolean = {
+  private[common] final def isRouteOnBoard(r: Route): Boolean = {
     isPointOnBoard(r.a) && isPointOnBoard(r.b)
   }
 
-  def arePointsAdjacent(a: Point, b: Point): Boolean = {
+  private[this] final def arePointsAdjacent(a: Point, b: Point): Boolean = {
     val aAdj = adjacentPoints(a)
     if (aAdj.contains(b)) {
       val bAdj = adjacentPoints(b)
@@ -41,13 +40,13 @@ sealed abstract class AbstractBoard(
     }
   }
 
-  def adjacentPoints(point: Point): List[Point] = {
-    point.unsafeAdjacent.filter { p =>
+  final def adjacentPoints(point: Point): List[Point] = {
+    point.unsafeAdjacent.filter { p => // TODO: optimize
       isPointOnBoard(p)
     }
   }
 
-  def isSolutionValid(routes: List[Route], solution: Map[Route, List[Point]]): Boolean = {
+  protected[this] final def isSolutionValid(routes: List[Route], solution: Map[Route, List[Point]]): Boolean = {
     (routes.size == solution.size) && routes.traverse[Option, Unit] { r =>
       solution.get(r) flatMap {
         case path @ (fst :: _ :: _) =>
@@ -74,7 +73,7 @@ sealed abstract class AbstractBoard(
     ('A' to 'Z').concat('a' to 'z').toArray
   }
 
-  def debugSolution(solution: Map[Route, List[Point]], debug: Boolean): String = {
+  final def debugSolution(solution: Map[Route, List[Point]], debug: Boolean): String = {
     if (debug) {
       val arr = new Array[Char](width * height)
       Arrays.fill(arr, EMPTY)
@@ -119,11 +118,11 @@ final case class Board(
   routes: Set[Route],
 ) extends AbstractBoard(height, width) {
 
-  def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
+  final def isSolutionValid(solution: Map[Route, List[Point]]): Boolean = {
     this.isSolutionValid(routes.toList, solution)
   }
 
-  def normalize(seed: Long): Board.Normalized = {
+  final def normalize(seed: Long): Board.Normalized = {
     // normalize the board, by (pseudo-randomly, based
     // on `seed`) shuffling routes to reduce obvious
     // conflicts; also flip some of the routes start
@@ -182,15 +181,8 @@ object Board extends BoardCompanionPlatform {
     }
   }
 
-  def empty(h: Int, w: Int): Board =
+  final def empty(h: Int, w: Int): Board =
     Board(h, w, Set.empty, Set.empty)
-
-  def fromFile[F[_]](path: String)(implicit fF: Files[F], cF: Concurrent[F]): F[Board] = {
-    val stream = fF
-      .readAll(Path(path))
-      .through(text.utf8.decode)
-    fromStream(stream)
-  }
 
   final override def fromStream[F[_]](s: Stream[F, String])(implicit cF: Concurrent[F]): F[Board] = {
     val stream = s
@@ -264,12 +256,12 @@ object Board extends BoardCompanionPlatform {
   }
 
   /** Cost for laying routes over each other */
-  def cost(depth: Int): Int = {
+  final def cost(depth: Int): Int = {
     require(depth >= 0)
     Math.pow(2.0, depth.toDouble).toInt
   }
 
-  def debugSolutionStats(solution: Solver.Solution, debug: Boolean, indent: String): String = {
+  final def debugSolutionStats(solution: Solver.Solution, debug: Boolean, indent: String): String = {
     if (debug) {
       val sb = new java.lang.StringBuilder()
       sb.append(indent)

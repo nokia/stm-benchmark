@@ -119,4 +119,13 @@ final class BoardSpec extends CatsEffectSuite {
     )
     assertEquals(r, exp)
   }
+
+  test("Point#manhattanDistance") {
+    assertEquals(Point(0, 0) manhattanDistance Point(2, 2), 4)
+    assertEquals(Point(0, 0) manhattanDistance Point(0, 2), 2)
+    assertEquals(Point(0, 0) manhattanDistance Point(2, 0), 2)
+    assertEquals(Point(0, 0) manhattanDistance Point(2, 3), 5)
+    assertEquals(Point(0, 0) manhattanDistance Point(-2, 3), 5)
+    assertEquals(Point(0, 0) manhattanDistance Point(-2, -3), 5)
+  }
 }

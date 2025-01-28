@@ -11,7 +11,7 @@ package common
 final case class Point(x: Int, y: Int) {
 
   /** Unsafe because the result(s) may not be on the board */
-  def unsafeAdjacent: List[Point] = {
+  final def unsafeAdjacent: List[Point] = {
     val lb = List.newBuilder[Point]
     if (x > 0) {
       lb += Point(x - 1, y)
@@ -22,6 +22,10 @@ final case class Point(x: Int, y: Int) {
     lb += Point(x + 1, y)
     lb += Point(x, y + 1)
     lb.result()
+  }
+
+  final def manhattanDistance(that: Point): Int = {
+    java.lang.Math.abs(this.x - that.x) + java.lang.Math.abs(this.y - that.y)
   }
 }
 
