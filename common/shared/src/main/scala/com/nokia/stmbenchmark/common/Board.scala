@@ -22,6 +22,9 @@ sealed abstract class AbstractBoard(
   width: Int,
 ) {
 
+  // this way we don't have to check for overflow in `adjacentPoints`:
+  require((height < Integer.MAX_VALUE) && (width < Integer.MAX_VALUE))
+
   private[common] final def isPointOnBoard(p: Point): Boolean = {
     (p.x >= 0) && (p.y >= 0) && (p.x < width) && (p.y < height)
   }
