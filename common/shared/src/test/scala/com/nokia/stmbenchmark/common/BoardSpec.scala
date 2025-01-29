@@ -7,6 +7,8 @@
 package com.nokia.stmbenchmark
 package common
 
+import java.util.concurrent.ThreadLocalRandom
+
 import cats.syntax.all._
 import cats.effect.IO
 
@@ -99,6 +101,55 @@ final class BoardSpec extends CatsEffectSuite {
     }
 
     tests.sequence.void
+  }
+
+  test("Board#normalize (small)") {
+    val pads = Set(Point(0, 0), Point(2, 2), Point(5, 5), Point(9, 9))
+    val b = Board(
+      10,
+      10,
+      pads = pads,
+      routes = Set(Route(Point(0, 0), Point(2, 2)), Route(Point(5, 5), Point(9, 9))),
+    )
+    val n = b.normalize(42L)
+    val exp = Board.Normalized(
+      10,
+      10,
+      pads = pads.toList.sorted,
+      routes = List(Route(Point(0, 0), Point(2, 2)), Route(Point(9, 9), Point(5, 5))),
+      restricted = 0,
+    )
+    assertEquals(n, exp)
+  }
+
+  test("Board#normalize (bigger)") {
+    val pads = Set(
+      Point(0, 0), Point(2, 2),
+      Point(5, 5), Point(9, 9),
+      Point(0, 9), Point(2, 7),
+      Point(5, 4), Point(9, 0),
+    )
+    val b = Board(
+      10,
+      10,
+      pads = pads,
+      routes = Set(
+        Route(Point(0, 0), Point(2, 2)),
+        Route(Point(5, 5), Point(9, 9)),
+        Route(Point(0, 9), Point(2, 7)),
+        Route(Point(5, 4), Point(9, 0)),
+      ),
+    )
+    val n = b.normalize(ThreadLocalRandom.current().nextLong())
+    assertEquals(n.height, b.height)
+    assertEquals(n.width, b.width)
+    assertEquals(n.restricted, 0)
+    assertEquals(n.pads, pads.toList.sorted)
+    assertEquals(n.routes.size, 4)
+    // shorter routes first:
+    assertEquals(n.routes.take(2).map(_.idealLength).toSet, Set(4))
+    // longer ones later:
+    assertEquals(n.routes.drop(2).map(_.idealLength).toSet, Set(8))
   }
 
   test("Board.Normalized#restrict") {

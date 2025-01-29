@@ -129,16 +129,30 @@ final case class Board(
     // normalize the board, by (pseudo-randomly, based
     // on `seed`) shuffling routes to reduce obvious
     // conflicts; also flip some of the routes start
-    // and end points (similarly pseudo-randomly):
+    // and end points (similarly pseudo-randomly);
+    // also sort shorter routes to the beginning (but
+    // still shuffle routes of the same length):
     val rnd = new Random(seed)
+    val normalizedRoutes: List[Route] = this
+      .routes
+      .groupBy(_.idealLength)
+      .toList
+      .sortBy(_._1) // sort by length
+      .map { kv => // keep the grouping by length, but shuffle pseudo-randomly
+        // (we sort first by coordinates do be deterministic even if set iteration order isn't)
+        val shuffled = rnd.shuffle(kv._2.toList.sorted(Route.orderByCoordinates)).map { r =>
+          // flip some endpoints:
+          if (rnd.nextBoolean()) r
+          else Route(a = r.b, b = r.a)
+        }
+        (kv._1, shuffled)
+      }
+      .flatMap { _._2 }
     Board.Normalized(
       height = this.height,
       width = this.width,
       pads = this.pads.toList.sorted,
-      routes = rnd.shuffle(this.routes.toList.sorted).map { r =>
-        if (rnd.nextBoolean()) Route(a = r.b, b = r.a)
-        else r
-      },
+      routes = normalizedRoutes,
       restricted = 0,
     )
   }
@@ -164,7 +178,7 @@ object Board extends BoardCompanionPlatform {
       this.isSolutionValid(routes, solution)
     }
 
-    final def restrict(rshift: Int, seed: Long): Normalized = { // TODO: use `seed`!!!
+    final def restrict(rshift: Int, seed: Long): Normalized = {
       if (rshift == 0) {
         this
       } else {
@@ -178,7 +192,11 @@ object Board extends BoardCompanionPlatform {
           val k = n >> rshift
           require(k > 0)
           require(k < n)
-          this.copy(routes = this.routes.take(k), restricted = this.restricted + rshift)
+          val rnd = new Random(seed)
+          val routesIndexed = this.routes.toIndexedSeq
+          val restrictedRouteIndices = rnd.shuffle(0 until routesIndexed.length).take(k).sorted
+          val restrictedRoutes = restrictedRouteIndices.map { idx => routesIndexed(idx) }.toList
+          this.copy(routes = restrictedRoutes, restricted = this.restricted + rshift)
         }
       }
     }
