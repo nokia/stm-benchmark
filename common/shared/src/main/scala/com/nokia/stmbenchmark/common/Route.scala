@@ -16,6 +16,10 @@ final case class Route(a: Point, b: Point) {
   final def idealLength: Int = {
     a manhattanDistance b
   }
+
+  final def flipped: Route = {
+    this.copy(a = this.b, b = this.a)
+  }
 }
 
 object Route {

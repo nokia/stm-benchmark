@@ -123,22 +123,27 @@ final class BoardSpec extends CatsEffectSuite {
   }
 
   test("Board#normalize (bigger)") {
+    def flipToOrdered(r: Route): Route = {
+      if (Point.ordering.lteq(r.a, r.b)) r
+      else r.flipped
+    }
     val pads = Set(
       Point(0, 0), Point(2, 2),
       Point(5, 5), Point(9, 9),
       Point(0, 9), Point(2, 7),
       Point(5, 4), Point(9, 0),
     )
+    val routes = Set(
+      Route(Point(0, 0), Point(2, 2)),
+      Route(Point(5, 5), Point(9, 9)),
+      Route(Point(0, 9), Point(2, 7)),
+      Route(Point(5, 4), Point(9, 0)),
+    )
     val b = Board(
       10,
       10,
       pads = pads,
-      routes = Set(
-        Route(Point(0, 0), Point(2, 2)),
-        Route(Point(5, 5), Point(9, 9)),
-        Route(Point(0, 9), Point(2, 7)),
-        Route(Point(5, 4), Point(9, 0)),
-      ),
+      routes = routes,
     )
     val n = b.normalize(ThreadLocalRandom.current().nextLong())
     assertEquals(n.height, b.height)
@@ -148,8 +153,16 @@ final class BoardSpec extends CatsEffectSuite {
     assertEquals(n.routes.size, 4)
     // shorter routes first:
     assertEquals(n.routes.take(2).map(_.idealLength).toSet, Set(4))
+    assertEquals(
+      n.routes.take(2).map(flipToOrdered).toSet,
+      Set(Route(Point(0, 0), Point(2, 2)), Route(Point(0, 9), Point(2, 7))).map(flipToOrdered),
+    )
     // longer ones later:
     assertEquals(n.routes.drop(2).map(_.idealLength).toSet, Set(8))
+    assertEquals(
+      n.routes.drop(2).map(flipToOrdered).toSet,
+      Set(Route(Point(5, 5), Point(9, 9)), Route(Point(5, 4), Point(9, 0))).map(flipToOrdered),
+    )
   }
 
   test("Board.Normalized#restrict") {
@@ -178,5 +191,10 @@ final class BoardSpec extends CatsEffectSuite {
     assertEquals(Point(0, 0) manhattanDistance Point(2, 3), 5)
     assertEquals(Point(0, 0) manhattanDistance Point(-2, 3), 5)
     assertEquals(Point(0, 0) manhattanDistance Point(-2, -3), 5)
+  }
+
+  test("Route#idealLength") {
+    assertEquals(Route(Point(2, 2), Point(0, 0)).idealLength, 4)
+    assertEquals(Route(Point(-2, 3), Point(0, 0)).idealLength, 5)
   }
 }

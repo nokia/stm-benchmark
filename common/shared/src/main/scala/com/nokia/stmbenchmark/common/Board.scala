@@ -143,7 +143,7 @@ final case class Board(
         val shuffled = rnd.shuffle(kv._2.toList.sorted(Route.orderByCoordinates)).map { r =>
           // flip some endpoints:
           if (rnd.nextBoolean()) r
-          else Route(a = r.b, b = r.a)
+          else r.flipped
         }
         (kv._1, shuffled)
       }
