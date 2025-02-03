@@ -45,6 +45,7 @@ lazy val common = crossProject(JVMPlatform, JSPlatform)
     dependencies.fs2.value,
     dependencies.catsEffectStd.value,
     dependencies.catsCore.value,
+    dependencies.catsEffectTestkit.value % TestInternal,
   ))
 
 lazy val benchmarks = project.in(file("benchmarks"))
@@ -267,7 +268,7 @@ lazy val dependencies = new {
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.14"
   val kyoVersion = "0.16.2"
-  val choamVersion = "0.4.10-99-abbf591"
+  val choamVersion = "0.4.10-110-4292887"
   val fs2Version = "3.12.0-RC1"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
