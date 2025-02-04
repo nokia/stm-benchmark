@@ -16,8 +16,7 @@ import dev.tauri.choam.async.AsyncReactive
 import common.JvmCeIoSolverSpec
 import common.Solver
 
-final class RxnSolverSpec extends JvmCeIoSolverSpec {
-
+final class RxnSolverSpec extends RxnSolverSpecBase {
   protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
     Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
       AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
@@ -27,6 +26,21 @@ final class RxnSolverSpec extends JvmCeIoSolverSpec {
       }
     }
   }
+}
+
+final class ErtRxnSolverSpec extends RxnSolverSpecBase {
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
+    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
+      AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
+        Resource.eval(
+          ErtRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
+        )
+      }
+    }
+  }
+}
+
+trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
 
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
