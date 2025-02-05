@@ -17,30 +17,26 @@ import common.JvmCeIoSolverSpec
 import common.Solver
 
 final class RxnSolverSpec extends RxnSolverSpecBase {
-  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
-    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
-      AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
-        Resource.eval(
-          RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
-        )
-      }
-    }
-  }
+  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
+    RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
 final class ErtRxnSolverSpec extends RxnSolverSpecBase {
-  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
-    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
-      AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
-        Resource.eval(
-          ErtRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
-        )
-      }
-    }
-  }
+  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
+    ErtRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
 trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
+
+  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]]
+
+  protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
+    Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
+      AsyncReactive.forAsyncRes[IO].flatMap { implicit ar =>
+        Resource.eval(this.mkSolver(numCpu))
+      }
+    }
+  }
 
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
