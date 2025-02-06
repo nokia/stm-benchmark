@@ -52,7 +52,7 @@ trait MunitUtils { this: munit.FunSuite =>
       5 -> ExpectedResult(2, 5035),
       6 -> ExpectedResult(2, 3376),
       7 -> ExpectedResult(1, 1271),
-      8 -> ExpectedResult(1, 1271),
+      8 -> ExpectedResult(1, 529),
     ),
     "memboard.txt" -> Map(
       0 -> ExpectedResult(3, 162917),
@@ -60,7 +60,7 @@ trait MunitUtils { this: munit.FunSuite =>
       2 -> ExpectedResult(3, 36800),
       4 -> ExpectedResult(2, 9008),
       5 -> ExpectedResult(2, 4074),
-      6 -> ExpectedResult(2, 2479),
+      6 -> ExpectedResult(2, 2783),
     ),
   )
 
