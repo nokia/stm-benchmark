@@ -141,7 +141,7 @@ lazy val arrowStm = project.in(file("arrow-stm"))
       dependencies.scalaJava8Compat.value,
     ),
     kotlin.Keys.kotlinLib("stdlib"),
-    kotlin.Keys.kotlinVersion := "2.1.0",
+    kotlin.Keys.kotlinVersion := "2.1.10",
     kotlin.Keys.kotlincJvmTarget := "11",
   )
 
@@ -268,7 +268,7 @@ lazy val dependencies = new {
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.15"
   val kyoVersion = "0.16.2"
-  val choamVersion = "0.4.10-110-4292887"
+  val choamVersion = "0.4.10-118-0b8d0c8"
   val fs2Version = "3.12.0-RC1"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
@@ -299,8 +299,8 @@ lazy val dependencies = new {
   val kyoStm = Def.setting("io.getkyo" %%% "kyo-stm" % kyoVersion)
   val kyoCats = Def.setting("io.getkyo" %%% "kyo-cats" % kyoVersion)
 
-  val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm-jvm" % "2.0.0")
-  val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.9.0")
+  val arrowStm = Def.setting("io.arrow-kt" % "arrow-fx-stm-jvm" % "2.0.1")
+  val kotlinxCoroutines = Def.setting("org.jetbrains.kotlinx" % "kotlinx-coroutines-jdk8" % "1.10.1")
   val scalaJava8Compat = Def.setting("org.scala-lang.modules" %%% "scala-java8-compat" % "1.0.2")
 }
 
