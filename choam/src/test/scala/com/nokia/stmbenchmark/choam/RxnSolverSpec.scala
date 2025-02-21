@@ -21,9 +21,9 @@ final class RxnSolverSpec extends RxnSolverSpecBase {
     RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
-final class ErtRxnSolverSpec extends RxnSolverSpecBase {
+final class ErRxnSolverSpec extends RxnSolverSpecBase {
   protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
-    ErtRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
+    ErRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
 trait RxnSolverSpecBase extends JvmCeIoSolverSpec {

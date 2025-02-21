@@ -13,28 +13,25 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.{ Rxn, Axn }
+import dev.tauri.choam.{ Rxn, Axn, Ref }
 import dev.tauri.choam.core.RetryStrategy
 import dev.tauri.choam.async.AsyncReactive
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
-/** A solver using `Rxn` for parallelization */
-object RxnSolver {
+/**
+ * A solver using `Rxn` and early release ("ER") to
+ * optimize (have less conflicts than) `RxnSolver`.
+ */
+object ErRxnSolver {
 
-  private[stmbenchmark] val spinStrategy: RetryStrategy.Spin =
-    RetryStrategy.Default
-
-  private[stmbenchmark] val cedeStrategy: RetryStrategy =
-    spinStrategy.withCede(true)
-
-  private[stmbenchmark] val sleepStrategy: RetryStrategy =
-    cedeStrategy.withSleep(true)
+  // TODO: A lot of this code is duplicated with
+  // TODO: `RxnSolver`; pull out the common methods.
 
   def apply[F[_]](
     parLimit: Int,
     log: Boolean,
-    strategy: RetryStrategy = spinStrategy,
+    strategy: RetryStrategy = RxnSolver.spinStrategy,
   )(implicit F: Async[F], ar: AsyncReactive[F]): F[Solver[F]] = {
     val cons = Console.make[F]
     val debugStrategy = if (log) cons.println(strategy) else F.unit
@@ -62,18 +59,19 @@ object RxnSolver {
         def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
           val act: Axn[List[Point]] = for {
             _ <- if (log) debug(s"Solving $route") else Axn.unit
-            cost <- expand(depth, route)
+            toUnread <- Ref(Set.empty[Ref[Int]])
+            cost <- expand(depth, route, toUnread)
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)
             solution <- solve(route, cost)
             solutionList = solution.toList
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
-            _ <- lay(depth, solution)
+            _ <- lay(depth, solution, toUnread)
           } yield solutionList
           ar.applyAsync(act, null, runConfig)
         }
 
-        def expand(depth: RefMatrix[Int], route: Route): Axn[RefMatrix[Int]] = {
+        def expand(depth: RefMatrix[Int], route: Route, toUnread: Ref[Set[Ref[Int]]]): Axn[RefMatrix[Int]] = {
           val startPoint = route.a
           val endPoint = route.b
 
@@ -89,7 +87,8 @@ object RxnSolver {
                         Rxn.pure(Chain.empty)
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
-                          depth(adjacent.y, adjacent.x).get.flatMapF { d =>
+                          val ref = depth(adjacent.y, adjacent.x)
+                          toUnread.update(_ + ref) *> ref.get.flatMapF { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
                               cost(adjacent.y, adjacent.x).set.provide(newCost).as(Chain(adjacent))
@@ -152,9 +151,14 @@ object RxnSolver {
           } (p = { solution => solution.head != endPoint })
         }
 
-        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Axn[Unit] = {
+        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point], toUnread: Ref[Set[Ref[Int]]]): Axn[Unit] = {
           solution.traverse_ { point =>
-            depth(point.y, point.x).update(_ + 1)
+            val ref = depth(point.y, point.x)
+            ref.update(_ + 1) *> toUnread.update(_ - ref)
+          } *> toUnread.get.flatMapF { tu =>
+            Chain.fromIterableOnce(tu.iterator).traverse_ { ref =>
+              Rxn.unsafe.unread(ref)
+            }
           }
         }
 
