@@ -46,7 +46,7 @@ object ErtRxnSolver {
         strategy
 
       private[this] final def debug(msg: String): Axn[Unit] = {
-        if (log) Axn.unsafe.delay { println(msg) }
+        if (log) Axn.unit.map { _ => println(msg) }
         else Rxn.unit
       }
 
@@ -137,7 +137,7 @@ object ErtRxnSolver {
 
                 mkNewWf.flatMap { case (newWavefront, collectedTickets) =>
                   if (newWavefront.isEmpty) {
-                    Axn.unsafe.delay { throw new Solver.Stuck }
+                    Axn.panic(new Solver.Stuck)
                   } else {
                     cost(endPoint.y, endPoint.x).get.flatMapF { costAtRouteEnd =>
                       if (costAtRouteEnd > 0) {
