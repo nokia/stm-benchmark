@@ -167,6 +167,7 @@ lazy val kyoStm = project.in(file("kyo-stm"))
 
 lazy val commonSettingsJvm = Seq[Setting[_]](
   Test / fork := true,
+  // Test / javaOptions += "-XX:ActiveProcessorCount=2",
 )
 
 lazy val commonSettingsJs = Seq[Setting[_]](
@@ -264,9 +265,9 @@ lazy val commonSettings = Seq[Setting[_]](
 lazy val dependencies = new {
 
   val catsVersion = "2.13.0"
-  val catsEffectVersion = "3.6.0-RC1"
+  val catsEffectVersion = "3.6.0-RC2"
   val catsStmVersion = "0.13.5"
-  val zioVersion = "2.1.15"
+  val zioVersion = "2.1.16"
   val kyoVersion = "0.16.2"
   val choamVersion = "0.4.12"
   val fs2Version = "3.12.0-RC1"
@@ -286,6 +287,7 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
+      "org.scalameta" %%% "munit" % "1.1.0",
       "org.typelevel" %%% "munit-cats-effect" % "2.0.0",
     )
   }
