@@ -10,10 +10,12 @@ package benchmarks
 import scala.annotation.nowarn
 
 import cats.effect.kernel.Async
-import cats.effect.IO
+import cats.effect.{ IO, SyncIO }
 import cats.effect.unsafe.IORuntime
 
 import zio.Task
+
+import dev.tauri.choam.async.AsyncReactive
 
 import org.openjdk.jmh.annotations._
 
@@ -260,14 +262,13 @@ object Benchmarks {
 
   trait RxnStateMixin[F[_]] {
 
-    import dev.tauri.choam.async.AsyncReactive
-
     protected[this] implicit def asyncInstance: Async[F]
 
-    private[this] implicit val asyncReactiveInstance: AsyncReactive[F] =
-      AsyncReactive.forAsync[F] // TODO: this is deprecated
-
-    protected final def createSolver(parLimit: Int, strategy: String): F[Solver[F]] = {
+    protected final def createSolver(
+      parLimit: Int,
+      strategy: String,
+      ar: AsyncReactive[F],
+    ): F[Solver[F]] = {
       val str = strategy match {
         case "spin" =>
           RxnSolver.spinStrategy
@@ -278,7 +279,7 @@ object Benchmarks {
         case x =>
           throw new IllegalArgumentException(s"invalid strategy: ${x}")
       }
-      RxnSolver[F](parLimit = parLimit, log = false, strategy = str)
+      RxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
     }
   }
 
@@ -292,8 +293,11 @@ object Benchmarks {
     protected[this] implicit final override def asyncInstance: Async[IO] =
       IO.asyncForIO
 
+    private[this] val asyncReactiveInstance: AsyncReactive[IO] =
+      AsyncReactive.forAsyncResIn[SyncIO, IO].allocated.unsafeRunSync()._1
+
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      this.createSolver(parLimit, this.strategy)
+      this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
     }
   }
 
@@ -307,8 +311,11 @@ object Benchmarks {
     protected[this] implicit final override def asyncInstance: Async[Task] =
       zio.interop.catz.asyncInstance
 
+    private[this] val asyncReactiveInstance: AsyncReactive[Task] =
+      this.unsafeRunSync(AsyncReactive.forAsyncRes[Task].allocated)._1
+
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
-      this.createSolver(parLimit, this.strategy)
+      this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
     }
   }
 
@@ -366,7 +373,7 @@ object Benchmarks {
 
     protected def mkSolver(parLimit: Int): Task[Solver[Task]]
 
-    private[this] final def unsafeRunSync[A](task: Task[A]): A = {
+    protected[this] final def unsafeRunSync[A](task: Task[A]): A = {
       this.runtime.unsafe.run(task)(zio.Trace.empty, zio.Unsafe).getOrThrow()(scala.<:<.refl, zio.Unsafe)
     }
 
