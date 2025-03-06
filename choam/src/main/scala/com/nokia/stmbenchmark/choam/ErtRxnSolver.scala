@@ -103,7 +103,7 @@ object ErtRxnSolver {
                     Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
-                        Rxn.pure((Chain.empty, Map.empty))
+                        Rxn.pure((Chain.empty[Point], Map.empty[Ref[Int], Ticket[Int]]))
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           val ref = depth(adjacent.y, adjacent.x)
@@ -121,7 +121,7 @@ object ErtRxnSolver {
                                 (Chain(adjacent), Map(ref -> ticket))
                               )
                             } else {
-                              Rxn.pure((Chain.empty, Map.empty))
+                              Rxn.pure((Chain.empty[Point], Map.empty[Ref[Int], Ticket[Int]]))
                             }
                           }
                         }

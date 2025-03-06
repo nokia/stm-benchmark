@@ -194,7 +194,7 @@ object Board extends BoardCompanionPlatform {
           require(k < n)
           val rnd = new Random(seed)
           val routesIndexed = this.routes.toIndexedSeq
-          val restrictedRouteIndices = rnd.shuffle(0 until routesIndexed.length).take(k).sorted
+          val restrictedRouteIndices = rnd.shuffle((0 until routesIndexed.length).toArray[Int]).take(k).sorted
           val restrictedRoutes = restrictedRouteIndices.map { idx => routesIndexed(idx) }.toList
           this.copy(routes = restrictedRoutes, restricted = this.restricted + rshift)
         }
