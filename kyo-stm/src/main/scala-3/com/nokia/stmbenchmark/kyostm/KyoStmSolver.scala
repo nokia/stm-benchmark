@@ -39,9 +39,9 @@ object KyoStmSolver {
         implicit frame: Frame
       ): Seq[A] < (Abort[Throwable] & Async) = {
         Meter.initSemaphore(concurrency = parallelism, reentrant = false).map { semaphore =>
-          Async.parallelUnbounded(tasks.map { task =>
+          Async.collectAll(tasks.map { task =>
             semaphore.run(task)
-          })
+          }, concurrency = Integer.MAX_VALUE)
         }
       }
 

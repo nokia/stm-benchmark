@@ -141,7 +141,7 @@ lazy val arrowStm = project.in(file("arrow-stm"))
       dependencies.scalaJava8Compat.value,
     ),
     kotlin.Keys.kotlinLib("stdlib"),
-    kotlin.Keys.kotlinVersion := "2.1.10",
+    kotlin.Keys.kotlinVersion := "2.1.20",
     kotlin.Keys.kotlincJvmTarget := "11",
   )
 
@@ -268,7 +268,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.6.0"
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.16"
-  val kyoVersion = "0.16.2"
+  val kyoVersion = "0.17.0"
   val choamVersion = "0.4.12"
   val fs2Version = "3.12.0"
   val kindProjectorVersion = "0.13.3"
@@ -288,7 +288,7 @@ lazy val dependencies = new {
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
       "org.scalameta" %%% "munit" % "1.1.0",
-      "org.typelevel" %%% "munit-cats-effect" % "2.0.0",
+      "org.typelevel" %%% "munit-cats-effect" % "2.1.0",
     )
   }
 
