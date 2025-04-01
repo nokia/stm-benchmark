@@ -294,7 +294,7 @@ object Benchmarks {
       IO.asyncForIO
 
     private[this] val asyncReactiveInstance: AsyncReactive[IO] =
-      AsyncReactive.forAsyncResIn[SyncIO, IO].allocated.unsafeRunSync()._1
+      AsyncReactive.forAsyncIn[SyncIO, IO].allocated.unsafeRunSync()._1
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
       this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
@@ -312,7 +312,7 @@ object Benchmarks {
       zio.interop.catz.asyncInstance
 
     private[this] val asyncReactiveInstance: AsyncReactive[Task] =
-      this.unsafeRunSync(AsyncReactive.forAsyncRes[Task].allocated)._1
+      this.unsafeRunSync(AsyncReactive.forAsync[Task].allocated)._1
 
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
       this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
