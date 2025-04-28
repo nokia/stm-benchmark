@@ -59,7 +59,7 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
 
   test("unsafeForkAndRunSync panic in Async map".fail) {
     val tsk: Int < (Async & Abort[Throwable]) = Async.run(IO { 42 }).map { fiber =>
-      fiber.get.map { i =>
+      fiber.get.map { _ =>
         Abort.panic(new MyException("s"))
       }
     }
@@ -88,7 +88,7 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
 
   test("unsafeForkAndRunSync panic in STM map".fail) {
     val tsk: Int < (Async & Abort[Throwable]) = TRef.init(42).map { ref =>
-      STM.run(ref.get.map[Int, STM] { i =>
+      STM.run(ref.get.map[Int, STM] { _ =>
         Abort.panic(new MyException("v"))
       })
     }

@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package kyostm
 
-import kyo.{ Async, Abort, STM }
+import kyo.STM
 
 import munit.FunSuite
 

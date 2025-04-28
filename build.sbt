@@ -6,7 +6,7 @@
 
 // Scala versions:
 val scala2 = "2.13.16"
-val scala3 = "3.6.4"
+val scala3 = "3.7.0-RC4"
 
 val TestInternal = "test-internal"
 
