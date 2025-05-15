@@ -22,7 +22,7 @@ import org.openjdk.jmh.annotations._
 import common.{ Solver, Board }
 import catsstm.CatsStmSolver
 import zstm.ZstmSolver
-import choam.RxnSolver
+import choam.{ RxnSolver, ErRxnSolver, ErtRxnSolver }
 import scalastm.{ ScalaStmSolver, WrStmSolver }
 import sequential.SequentialSolver
 import arrowstm.{ KotlinInterop, ArrowStmSolver }
@@ -267,6 +267,7 @@ object Benchmarks {
     protected final def createSolver(
       parLimit: Int,
       strategy: String,
+      solver: String,
       ar: AsyncReactive[F],
     ): F[Solver[F]] = {
       val str = strategy match {
@@ -279,7 +280,16 @@ object Benchmarks {
         case x =>
           throw new IllegalArgumentException(s"invalid strategy: ${x}")
       }
-      RxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+      solver match {
+        case "RxnSolver" =>
+          RxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+        case "ErRxnSolver" =>
+          ErRxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+        case "ErtRxnSolver" =>
+          ErtRxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+        case x =>
+          throw new IllegalArgumentException(s"invalid solver: ${x}")
+      }
     }
   }
 
@@ -290,6 +300,10 @@ object Benchmarks {
     protected[this] var strategy: String =
       "sleep"
 
+    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver"))
+    protected[this] var solver: String =
+      "RxnSolver"
+
     protected[this] implicit final override def asyncInstance: Async[IO] =
       IO.asyncForIO
 
@@ -297,7 +311,7 @@ object Benchmarks {
       AsyncReactive.forAsyncIn[SyncIO, IO].allocated.unsafeRunSync()._1
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
+      this.createSolver(parLimit, this.strategy, this.solver, this.asyncReactiveInstance)
     }
   }
 
@@ -308,6 +322,10 @@ object Benchmarks {
     protected[this] var strategy: String =
       "sleep"
 
+    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver"))
+    protected[this] var solver: String =
+      "RxnSolver"
+
     protected[this] implicit final override def asyncInstance: Async[Task] =
       zio.interop.catz.asyncInstance
 
@@ -315,7 +333,7 @@ object Benchmarks {
       this.unsafeRunSync(AsyncReactive.forAsync[Task].allocated)._1
 
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
-      this.createSolver(parLimit, this.strategy, this.asyncReactiveInstance)
+      this.createSolver(parLimit, this.strategy, this.solver, this.asyncReactiveInstance)
     }
   }
 
