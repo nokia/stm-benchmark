@@ -6,7 +6,7 @@
 
 // Scala versions:
 val scala2 = "2.13.16"
-val scala3 = "3.7.0-RC4"
+val scala3 = "3.7.0"
 
 val TestInternal = "test-internal"
 
@@ -268,7 +268,7 @@ lazy val dependencies = new {
   val catsEffectVersion = "3.6.1"
   val catsStmVersion = "0.13.5"
   val zioVersion = "2.1.17"
-  val kyoVersion = "0.18.0"
+  val kyoVersion = "0.19.0"
   val choamVersion = "0.5-4c4b98d"
   val fs2Version = "3.12.0"
   val kindProjectorVersion = "0.13.3"
@@ -287,7 +287,7 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
-      "org.scalameta" %%% "munit" % "1.1.0",
+      "org.scalameta" %%% "munit" % "1.1.1",
       "org.typelevel" %%% "munit-cats-effect" % "2.1.0",
     )
   }

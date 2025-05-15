@@ -9,7 +9,7 @@ package kyostm
 
 import scala.concurrent.Future
 
-import kyo.{ <, Abort, Async, Flat }
+import kyo.{ <, Abort, Async }
 
 import munit.{ BaseFunSuite, ValueTransforms, Location, TestOptions }
 
@@ -23,7 +23,7 @@ trait KyoInteropMunit extends ValueTransforms with KyoInterop { this: BaseFunSui
     }
   }
 
-  protected final def testKyo[A : Flat](name: TestOptions)(body: => A < (Async & Abort[Throwable]))(implicit loc: Location): Unit = {
+  protected final def testKyo[A](name: TestOptions)(body: => A < (Async & Abort[Throwable]))(implicit loc: Location): Unit = {
     this.test(name) {
       val tsk: A < (Async & Abort[Throwable]) = body
       val fut: Future[A] = unsafeToFuture(tsk)

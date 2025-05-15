@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package kyostm
 
-import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule, Flat, Frame, Meter }
+import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule, Frame, Meter }
 
 import common.{ Board, BoolMatrix, Point, Route, Solver }
 
@@ -35,7 +35,7 @@ object KyoStmSolver {
       }
 
       /** Like `kyo.Async.parallel`, but without the grouping */
-      private[this] final def parallelN[A: Flat](parallelism: Int)(tasks: Seq[A < (Abort[Throwable] & Async)])(
+      private[this] final def parallelN[A](parallelism: Int)(tasks: Seq[A < (Abort[Throwable] & Async)])(
         implicit frame: Frame
       ): Seq[A] < (Abort[Throwable] & Async) = {
         Meter.initSemaphore(concurrency = parallelism, reentrant = false).map { semaphore =>
