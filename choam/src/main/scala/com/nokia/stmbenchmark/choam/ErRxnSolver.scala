@@ -14,6 +14,7 @@ import cats.effect.Async
 import cats.effect.std.Console
 
 import dev.tauri.choam.{ Rxn, Axn, Ref }
+import dev.tauri.choam.Rxn.unsafe.Ticket
 import dev.tauri.choam.core.RetryStrategy
 import dev.tauri.choam.async.AsyncReactive
 
@@ -59,19 +60,19 @@ object ErRxnSolver {
         def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
           val act: Axn[List[Point]] = for {
             _ <- if (log) debug(s"Solving $route") else Axn.unit
-            toUnread <- Ref(Set.empty[Ref[Int]])
-            cost <- expand(depth, route, toUnread)
+            pointsRead <- Ref(Map.empty[Ref[Int], Ticket[Int]])
+            cost <- expand(depth, route, pointsRead)
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)
             solution <- solve(route, cost)
             solutionList = solution.toList
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
-            _ <- lay(depth, solution, toUnread)
+            _ <- lay(depth, solution, pointsRead)
           } yield solutionList
           ar.applyAsync(act, null, runConfig)
         }
 
-        def expand(depth: RefMatrix[Int], route: Route, toUnread: Ref[Set[Ref[Int]]]): Axn[RefMatrix[Int]] = {
+        def expand(depth: RefMatrix[Int], route: Route, pointsRead: Ref[Map[Ref[Int], Ticket[Int]]]): Axn[RefMatrix[Int]] = {
           val startPoint = route.a
           val endPoint = route.b
 
@@ -88,12 +89,15 @@ object ErRxnSolver {
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           val ref = depth(adjacent.y, adjacent.x)
-                          toUnread.update(_ + ref) *> ref.get.flatMapF { d =>
-                            val newCost = pointCost + Board.cost(d)
-                            if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set1(newCost).as(Chain(adjacent))
-                            } else {
-                              Rxn.pure(Chain.empty)
+                          Rxn.unsafe.tentativeRead(ref).flatMapF { ticket =>
+                            pointsRead.update(_.updated(ref, ticket)) *> {
+                              val d = ticket.unsafePeek
+                              val newCost = pointCost + Board.cost(d)
+                              if ((currentCost == 0) || (newCost < currentCost)) {
+                                cost(adjacent.y, adjacent.x).set1(newCost).as(Chain(adjacent))
+                              } else {
+                                Rxn.pure(Chain.empty)
+                              }
                             }
                           }
                         }
@@ -151,15 +155,18 @@ object ErRxnSolver {
           } (p = { solution => solution.head != endPoint })
         }
 
-        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point], toUnread: Ref[Set[Ref[Int]]]): Axn[Unit] = {
+        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point], pointsRead: Ref[Map[Ref[Int], Ticket[Int]]]): Axn[Unit] = {
+          pointsRead.get.flatMapF { pointsReadMap =>
           solution.traverse_ { point =>
             val ref = depth(point.y, point.x)
-            ref.update(_ + 1) *> toUnread.update(_ - ref)
-          } *> toUnread.get.flatMapF { tu =>
-            Chain.fromIterableOnce(tu.iterator).traverse_ { ref =>
-              Rxn.unsafe.unread(ref)
-            }
-          }
+            ref.update { ov =>
+              if (point != solution.head) {
+                val ticket = pointsReadMap(ref)
+                assert(ticket.unsafePeek == ov, s"For $point: ticket has ${ticket.unsafePeek}, but now read ${ov}")
+              }
+              ov + 1
+            }.as(ref)
+          }}
         }
 
         RefMatrix.apply(
