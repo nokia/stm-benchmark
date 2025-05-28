@@ -13,7 +13,7 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.{ Rxn, Axn, Ref }
+import dev.tauri.choam.core.{ Rxn, Axn, Ref }
 import Rxn.unsafe.Ticket
 import dev.tauri.choam.core.RetryStrategy
 import dev.tauri.choam.async.AsyncReactive

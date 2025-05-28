@@ -10,7 +10,7 @@ package choam
 import cats.Show
 import cats.syntax.all._
 
-import dev.tauri.choam.{ Ref, Axn, Reactive }
+import dev.tauri.choam.core.{ Ref, Axn, Reactive }
 
 sealed abstract class RefMatrix[A] {
 
