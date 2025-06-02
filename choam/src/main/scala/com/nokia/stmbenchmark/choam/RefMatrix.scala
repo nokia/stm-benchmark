@@ -11,6 +11,7 @@ import cats.Show
 import cats.syntax.all._
 
 import dev.tauri.choam.core.{ Ref, Axn, Reactive }
+import dev.tauri.choam.unsafe.InRxn
 
 sealed abstract class RefMatrix[A] {
 
@@ -37,6 +38,23 @@ sealed abstract class RefMatrix[A] {
   def debugF[F[_]](debug: Boolean)(implicit s: Show[A], F: Reactive[F]): F[String] = {
     F.apply(this.debug(debug))
   }
+
+  final def unsafeDebug(debug: Boolean)(implicit s: Show[A], txn: InRxn): String = {
+    import dev.tauri.choam.unsafe.api._
+    if (debug) {
+      val llb = List.newBuilder[List[String]]
+      for (row <- (0 until height)) {
+        val lb = List.newBuilder[String]
+        for (col <- (0 until width)) {
+          lb += s.show(this(row, col).value)
+        }
+        llb += lb.result()
+      }
+      llb.result().map(_.mkString(", ")).mkString("\n")
+    } else {
+      ""
+    }
+  }
 }
 
 object RefMatrix {
@@ -49,20 +67,31 @@ object RefMatrix {
     require(w >= 0)
     val len = h * w
     Ref.array(len, initial, allocStr).map { refArr =>
-      new RefMatrix[A] {
+      new RefMatrixImpl[A](h, w, refArr)
+    }
+  }
 
-        final override val height: Int =
-          h
+  def unsafeNew[A](h: Int, w: Int, initial: A)(implicit txn: InRxn): RefMatrix[A] = {
+    import dev.tauri.choam.unsafe.api._
+    require(h >= 0)
+    require(w >= 0)
+    val len = h * w
+    val refArr = newRefArray(len, initial, allocStr)
+    new RefMatrixImpl[A](h, w, refArr)
+  }
 
-        final override val width: Int =
-          w
+  private[this] final class RefMatrixImpl[A](h: Int, w: Int, refArr: Ref.Array[A]) extends RefMatrix[A] {
 
-        final override def apply(row: Int, col: Int): Ref[A] = {
-          require((row >= 0) && (row < height))
-          require((col >= 0) && (col < width))
-          refArr.unsafeGet((row * width) + col)
-        }
-      }
+    final override val height: Int =
+      h
+
+    final override val width: Int =
+      w
+
+    final override def apply(row: Int, col: Int): Ref[A] = {
+      require((row >= 0) && (row < height))
+      require((col >= 0) && (col < width))
+      refArr.unsafeGet((row * width) + col)
     }
   }
 }

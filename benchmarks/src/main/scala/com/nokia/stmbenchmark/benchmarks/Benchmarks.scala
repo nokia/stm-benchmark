@@ -22,7 +22,7 @@ import org.openjdk.jmh.annotations._
 import common.{ Solver, Board }
 import catsstm.CatsStmSolver
 import zstm.ZstmSolver
-import choam.{ RxnSolver, ErRxnSolver, ErtRxnSolver }
+import choam.{ RxnSolver, ErRxnSolver, ErtRxnSolver, ImpRxnSolver }
 import scalastm.{ ScalaStmSolver, WrStmSolver }
 import sequential.SequentialSolver
 import arrowstm.{ KotlinInterop, ArrowStmSolver }
@@ -68,6 +68,11 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
 
   @Benchmark
   def rxnOnZio(st: RxnOnZioState): Solver.Solution = {
+    st.runSolveTask()
+  }
+
+  @Benchmark
+  def rxnImp(st: ImpRxnState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -334,6 +339,14 @@ object Benchmarks {
 
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
       this.createSolver(parLimit, this.strategy, this.solver, this.asyncReactiveInstance)
+    }
+  }
+
+  @State(Scope.Benchmark)
+  class ImpRxnState extends IOState {
+
+    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
+      ImpRxnSolver[IO](parLimit = parLimit, log = false)
     }
   }
 
