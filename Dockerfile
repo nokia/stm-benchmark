@@ -10,7 +10,16 @@
 
 FROM sbtscala/scala-sbt:amazoncorretto-al2023-21.0.7_1.11.0_3.7.0
 
-# Download dependencies to speed up running benchmarks;
-# we're not building the benchmarks themselves, to
-# make sure there are no incremental compilation issues:
-RUN sbt ";skipBanner;update"
+COPY ./build.sbt /root/stm-benchmark/build.sbt
+COPY ./project /root/stm-benchmark/project
+
+WORKDIR /root/stm-benchmark
+
+RUN sbt update
+
+
+COPY . /root/stm-benchmark
+
+RUN sbt staticAnalysis
+
+RUN sbt "runBenchmarks -lp"
