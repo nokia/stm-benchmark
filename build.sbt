@@ -310,12 +310,11 @@ addCommandAlias("staticAnalysis", ";headerCheckAll;Test/compile")
 addCommandAlias("validate", ";staticAnalysis;test")
 
 // We always want some JMH arguments, so we define an alias for them:
-addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json")
+addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json")
 
 // For big boards, we want to run JMH in single-shot mode:
-addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -bm ss -to 3hr -f 1")
+addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json -bm ss -to 3hr -f 1")
 
 // Other common JMH arguments:
 // params, e.g.: `-p board=mainboard.txt`
-// output, e.g.: `-rff results.json`
 // profiling, e.g.: `-prof jfr`

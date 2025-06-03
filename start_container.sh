@@ -7,7 +7,7 @@
 
 set -e -u
 
-IMAGE="sbtscala/scala-sbt:amazoncorretto-al2023-21.0.7_1.11.0_3.7.0"
-_DIR=$(pwd)
+IMAGE="stm-benchmark-image:latest"
+_DIR="$(pwd)/benchmarks/results"
 
-docker run -it --rm --privileged --mount type=bind,src="$_DIR",dst="/root/stm-benchmark" "$IMAGE" /bin/bash
+docker run -it --rm --privileged --mount type=bind,src="$_DIR",dst="/root/stm-benchmark/benchmarks/results" "$IMAGE" /bin/bash

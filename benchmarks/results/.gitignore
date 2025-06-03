@@ -1,0 +1,4 @@
+# ignore benchmark results:
+*
+# keep this file:
+!.gitignore
