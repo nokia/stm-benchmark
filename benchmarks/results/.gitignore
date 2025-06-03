@@ -1,4 +1,1 @@
-# ignore benchmark results:
-*
-# keep this file:
-!.gitignore
+# this file exists only to keep this (empty) directory in git
