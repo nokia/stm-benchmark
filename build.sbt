@@ -316,5 +316,6 @@ addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff res
 addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json -bm ss -to 3hr -f 1")
 
 // Other common JMH arguments:
-// params, e.g.: `-p board=mainboard.txt`
-// profiling, e.g.: `-prof jfr`
+// `-p board=mainboard.txt` (specifying parameters)
+// `-prof jfr` (configuring profilers)
+// `-jvmArgsAppend -XX:ActiveProcessorCount=2` (constraining cores used by the forked benchmarking JVMs)
