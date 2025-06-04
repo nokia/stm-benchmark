@@ -15,6 +15,7 @@ import cats.effect.unsafe.IORuntime
 
 import zio.Task
 
+import dev.tauri.choam.ChoamRuntime
 import dev.tauri.choam.async.AsyncReactive
 
 import org.openjdk.jmh.annotations._
@@ -68,11 +69,6 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
 
   @Benchmark
   def rxnOnZio(st: RxnOnZioState): Solver.Solution = {
-    st.runSolveTask()
-  }
-
-  @Benchmark
-  def rxnImp(st: ImpRxnState): Solver.Solution = {
     st.runSolveTask()
   }
 
@@ -267,14 +263,12 @@ object Benchmarks {
 
   trait RxnStateMixin[F[_]] {
 
-    protected[this] implicit def asyncInstance: Async[F]
-
     protected final def createSolver(
       parLimit: Int,
       strategy: String,
       solver: String,
-      ar: AsyncReactive[F],
-    ): F[Solver[F]] = {
+      rt: ChoamRuntime,
+    )(implicit F: Async[F], ar: AsyncReactive[F]): F[Solver[F]] = {
       val str = strategy match {
         case "spin" =>
           RxnSolver.spinStrategy
@@ -287,11 +281,13 @@ object Benchmarks {
       }
       solver match {
         case "RxnSolver" =>
-          RxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+          RxnSolver[F](parLimit = parLimit, log = false, strategy = str)
         case "ErRxnSolver" =>
-          ErRxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+          ErRxnSolver[F](parLimit = parLimit, log = false, strategy = str)
         case "ErtRxnSolver" =>
-          ErtRxnSolver[F](parLimit = parLimit, log = false, strategy = str)(asyncInstance, ar)
+          ErtRxnSolver[F](parLimit = parLimit, log = false, strategy = str)
+        case "ImpRxnSolver" =>
+          ImpRxnSolver[F](rt, parLimit = parLimit, log = false)
         case x =>
           throw new IllegalArgumentException(s"invalid solver: ${x}")
       }
@@ -301,52 +297,42 @@ object Benchmarks {
   @State(Scope.Benchmark)
   class RxnOnCeState extends IOState with RxnStateMixin[IO] {
 
-    // @Param(Array("spin", "cede", "sleep"))
-    protected[this] var strategy: String =
-      "sleep"
-
-    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver"))
+    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver", "ImpRxnSolver"))
     protected[this] var solver: String =
       "RxnSolver"
 
-    protected[this] implicit final override def asyncInstance: Async[IO] =
+    protected[this] implicit final val asyncInstance: Async[IO] =
       IO.asyncForIO
 
-    private[this] val asyncReactiveInstance: AsyncReactive[IO] =
-      AsyncReactive.forAsyncIn[SyncIO, IO].allocated.unsafeRunSync()._1
+    private[this] val runtime: ChoamRuntime =
+      ChoamRuntime[SyncIO].allocated.unsafeRunSync()._1
+
+    private[this] implicit val asyncReactiveInstance: AsyncReactive[IO] =
+      AsyncReactive.fromIn[SyncIO, IO](this.runtime).allocated.unsafeRunSync()._1
 
     protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      this.createSolver(parLimit, this.strategy, this.solver, this.asyncReactiveInstance)
+      this.createSolver(parLimit, "sleep", this.solver, this.runtime)
     }
   }
 
   @State(Scope.Benchmark)
   class RxnOnZioState extends ZioState with RxnStateMixin[Task] {
 
-    // @Param(Array("spin", "cede", "sleep"))
-    protected[this] var strategy: String =
-      "sleep"
-
-    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver"))
+    @Param(Array("RxnSolver", "ErRxnSolver", "ErtRxnSolver", "ImpRxnSolver"))
     protected[this] var solver: String =
       "RxnSolver"
 
-    protected[this] implicit final override def asyncInstance: Async[Task] =
+    protected[this] implicit final val asyncInstance: Async[Task] =
       zio.interop.catz.asyncInstance
 
-    private[this] val asyncReactiveInstance: AsyncReactive[Task] =
-      this.unsafeRunSync(AsyncReactive.forAsync[Task].allocated)._1
+    private[this] val runtime: ChoamRuntime =
+      this.unsafeRunSync(ChoamRuntime[Task].allocated)._1
+
+    private[this] implicit val asyncReactiveInstance: AsyncReactive[Task] =
+      this.unsafeRunSync(AsyncReactive.from[Task](this.runtime).allocated)._1
 
     protected final override def mkSolver(parLimit: Int): Task[Solver[Task]] = {
-      this.createSolver(parLimit, this.strategy, this.solver, this.asyncReactiveInstance)
-    }
-  }
-
-  @State(Scope.Benchmark)
-  class ImpRxnState extends IOState {
-
-    protected final override def mkSolver(parLimit: Int): IO[Solver[IO]] = {
-      ImpRxnSolver[IO](parLimit = parLimit, log = false)
+      this.createSolver(parLimit, "sleep", this.solver, this.runtime)
     }
   }
 

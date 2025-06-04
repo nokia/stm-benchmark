@@ -7,38 +7,48 @@
 package com.nokia.stmbenchmark
 package choam
 
+import scala.annotation.unused
+
 import cats.syntax.all._
 import cats.effect.IO
 import cats.effect.kernel.Resource
 
+import dev.tauri.choam.ChoamRuntime
 import dev.tauri.choam.async.AsyncReactive
 
 import common.JvmCeIoSolverSpec
 import common.Solver
 
 final class RxnSolverSpec extends RxnSolverSpecBase {
-  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
+  protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
     RxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
 final class ErRxnSolverSpec extends RxnSolverSpecBase {
-  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
+  protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
     ErRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
+final class ErtRxnSolverSpec extends RxnSolverSpecBase {
+  protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] =
+    ErtRxnSolver[IO](parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
+}
+
 final class ImpRxnSolverSpec extends RxnSolverSpecBase {
-  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]] = // TODO: use `ar`; `strategy`
-    ImpRxnSolver[IO](parLimit = numCpu, log = false)
+  protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit @unused ar: AsyncReactive[IO]): IO[Solver[IO]] =
+    ImpRxnSolver[IO](rt = rt, parLimit = numCpu, log = false) // TODO: sleepStrategy
 }
 
 trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
 
-  protected[this] def mkSolver(numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]]
+  protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]]
 
   protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
     Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
-      AsyncReactive.forAsync[IO].flatMap { implicit ar =>
-        Resource.eval(this.mkSolver(numCpu))
+      ChoamRuntime[IO].flatMap { rt =>
+        AsyncReactive.from[IO](rt).flatMap { implicit ar =>
+          Resource.eval(this.mkSolver(rt, numCpu)(using ar))
+        }
       }
     }
   }

@@ -40,7 +40,7 @@ sealed abstract class RefMatrix[A] {
   }
 
   final def unsafeDebug(debug: Boolean)(implicit s: Show[A], txn: InRxn): String = {
-    import dev.tauri.choam.unsafe.api._
+    import dev.tauri.choam.unsafe.RefSyntax
     if (debug) {
       val llb = List.newBuilder[List[String]]
       for (row <- (0 until height)) {
@@ -72,7 +72,7 @@ object RefMatrix {
   }
 
   def unsafeNew[A](h: Int, w: Int, initial: A)(implicit txn: InRxn): RefMatrix[A] = {
-    import dev.tauri.choam.unsafe.api._
+    import dev.tauri.choam.unsafe.newRefArray
     require(h >= 0)
     require(w >= 0)
     val len = h * w

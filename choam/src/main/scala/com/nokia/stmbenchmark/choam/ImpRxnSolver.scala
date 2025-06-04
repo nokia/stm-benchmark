@@ -7,8 +7,8 @@
 package com.nokia.stmbenchmark
 package choam
 
-import dev.tauri.choam.unsafe.{ InRxn }
-import dev.tauri.choam.unsafe.api._
+import dev.tauri.choam.ChoamRuntime
+import dev.tauri.choam.unsafe.{ InRxn, RefSyntax, UnsafeApi, updateRef }
 
 import cats.syntax.traverse._
 import cats.effect.kernel.Async
@@ -19,9 +19,12 @@ import common.{ Solver, Board, Point, Route, BoolMatrix }
 
 object ImpRxnSolver {
 
-  def apply[F[_]](parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
+  def apply[F[_]](rt: ChoamRuntime, parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
+    val api: UnsafeApi = UnsafeApi(rt)
     F.pure(
       new Solver[F] {
+
+        import api.atomically
 
         private[this] final def debug(msg: String): Unit = {
           if (log) println(msg)
