@@ -36,7 +36,7 @@ final class ErtRxnSolverSpec extends RxnSolverSpecBase {
 
 final class ImpRxnSolverSpec extends RxnSolverSpecBase {
   protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit @unused ar: AsyncReactive[IO]): IO[Solver[IO]] =
-    ImpRxnSolver[IO](rt = rt, parLimit = numCpu, log = false) // TODO: sleepStrategy
+    ImpRxnSolver[IO](rt = rt, parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
 trait RxnSolverSpecBase extends JvmCeIoSolverSpec {

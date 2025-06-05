@@ -287,7 +287,7 @@ object Benchmarks {
         case "ErtRxnSolver" =>
           ErtRxnSolver[F](parLimit = parLimit, log = false, strategy = str)
         case "ImpRxnSolver" =>
-          ImpRxnSolver[F](rt, parLimit = parLimit, log = false)
+          ImpRxnSolver[F](rt, parLimit = parLimit, log = false, strategy = str)
         case x =>
           throw new IllegalArgumentException(s"invalid solver: ${x}")
       }

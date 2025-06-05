@@ -8,6 +8,7 @@ package com.nokia.stmbenchmark
 package choam
 
 import dev.tauri.choam.ChoamRuntime
+import dev.tauri.choam.core.RetryStrategy
 import dev.tauri.choam.unsafe.{ InRxn, RefSyntax, UnsafeApi, updateRef }
 
 import cats.syntax.traverse._
@@ -19,12 +20,17 @@ import common.{ Solver, Board, Point, Route, BoolMatrix }
 
 object ImpRxnSolver {
 
-  def apply[F[_]](rt: ChoamRuntime, parLimit: Int, log: Boolean)(implicit F: Async[F]): F[Solver[F]] = {
+  def apply[F[_]](
+    rt: ChoamRuntime,
+    parLimit: Int,
+    log: Boolean,
+    strategy: RetryStrategy,
+  )(implicit F: Async[F]): F[Solver[F]] = {
     val api: UnsafeApi = UnsafeApi(rt)
     F.pure(
       new Solver[F] {
 
-        import api.atomically
+        import api.{ atomically, atomicallyAsync }
 
         private[this] final def debug(msg: String): Unit = {
           if (log) println(msg)
@@ -42,8 +48,8 @@ object ImpRxnSolver {
         final override def solve(board: Board.Normalized): F[Solver.Solution] = {
           val obstructed = BoolMatrix.obstructedFromBoard(board)
 
-          def solveOneRoute(depth: RefMatrix[Int], route: Route): List[Point] = {
-            atomically { implicit txn =>
+          def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
+            atomicallyAsync(strategy) { implicit txn =>
               if (log) debug(s"Solving $route")
               val cost = expand(depth, route)
               val costStr = cost.unsafeDebug(debug = log)(i => f"$i%2s", txn)
@@ -141,8 +147,7 @@ object ImpRxnSolver {
             }
             val pl = java.lang.Math.max(1, java.lang.Math.min(parLimit, board.numberOrRoutes))
             val solveOne = { (route: Route) =>
-              F.delay {
-                val solution = solveOneRoute(depth, route)
+              F.map(solveOneRoute(depth, route)) { solution =>
                 (route, solution)
               }
             }
