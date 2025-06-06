@@ -335,8 +335,7 @@ runBenchmarksNCPU := Def.inputTaskDyn {
     case (lst, Some(args)) => (lst, args)
     case (lst, None) => (lst, Seq.empty)
   }
-  println(ncpuLst)
-  println(addArgs)
+  val dryRun = addArgs.contains("-l") || addArgs.contains("-lp")
   val outFiles = ncpuLst.map { ncpu => s"results/jmh-result-ncpu_${ncpu}.json" }
   Def.sequential(
     ncpuLst.map { ncpu =>
@@ -346,14 +345,18 @@ runBenchmarksNCPU := Def.inputTaskDyn {
           s" -foe true -rf json -rff results/jmh-result-ncpu_${ncpu}.json -jvmArgsAppend -XX:ActiveProcessorCount=${ncpu}${additionalArgs}"
         )
       }
-    } :+ Def.task {
-      MergeBenchResults.mergeBenchResultsInternal(
-        (benchmarks / baseDirectory).value,
-        (benchmarks / streams).value.log,
-        "results/jmh-result.json",
-        outFiles.toList,
-        ncpuLst.toList,
-      )
-    }
+    } ++ (if (dryRun) {
+      Nil
+    } else {
+      Def.task {
+        MergeBenchResults.mergeBenchResultsInternal(
+          (benchmarks / baseDirectory).value,
+          (benchmarks / streams).value.log,
+          "results/jmh-result.json",
+          outFiles.toList,
+          ncpuLst.toList,
+        )
+      } :: Nil
+    })
   )
 }.evaluated
