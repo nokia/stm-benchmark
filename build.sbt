@@ -319,3 +319,41 @@ addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff
 // `-p board=mainboard.txt` (specifying parameters)
 // `-prof jfr` (configuring profilers)
 // `-jvmArgsAppend -XX:ActiveProcessorCount=2` (constraining cores used by the forked benchmarking JVMs)
+
+import sbt.complete.Parser
+import sbt.complete.DefaultParsers._
+
+lazy val runBenchmarksNCPU = inputKey[Unit]("run benchmarks on various number of cores (with -XX:ActiveProcessorCount=...)")
+
+runBenchmarksNCPU := Def.inputTaskDyn {
+  // parse:
+  // - whitespace
+  // - comma separated list of integers
+  // - usual (additional) JMH arguments
+  val args: (Seq[Int], Option[Seq[String]]) = ((Space ~> rep1sep(IntBasic, ",")) ~ (spaceDelimited("<arg>")).?).parsed
+  val (ncpuLst, addArgs) = args match {
+    case (lst, Some(args)) => (lst, args)
+    case (lst, None) => (lst, Seq.empty)
+  }
+  println(ncpuLst)
+  println(addArgs)
+  val outFiles = ncpuLst.map { ncpu => s"results/jmh-result-ncpu_${ncpu}.json" }
+  Def.sequential(
+    ncpuLst.map { ncpu =>
+      Def.taskDyn {
+        val additionalArgs = " " + addArgs.mkString(" ")
+        (benchmarks / Jmh / run).toTask(
+          s" -foe true -rf json -rff results/jmh-result-ncpu_${ncpu}.json -jvmArgsAppend -XX:ActiveProcessorCount=${ncpu}${additionalArgs}"
+        )
+      }
+    } :+ Def.task {
+      MergeBenchResults.mergeBenchResultsInternal(
+        (benchmarks / baseDirectory).value,
+        (benchmarks / streams).value.log,
+        "results/jmh-result.json",
+        outFiles.toList,
+        ncpuLst.toList,
+      )
+    }
+  )
+}.evaluated
