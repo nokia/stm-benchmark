@@ -97,15 +97,15 @@ object Benchmarks {
     protected[this] var board: String =
       null
 
-    @Param(Array("42"))
+    // @Param(Array("42"))
     protected[this] var seed: Long =
-      0L
+      42L
 
-    @Param(Array("3", "2", "1", "0"))
+    // @Param(Array("3", "2", "1", "0"))
     protected[this] var restrict: Int =
-      -1
+      0
 
-    @Param(Array("-1"))
+    // @Param(Array("-1"))
     protected[this] var repeat: Int =
       -1
 
@@ -161,10 +161,10 @@ object Benchmarks {
     private[this] var parLimit: Int =
       -1
 
-    @Param(Array("1"))
+    // @Param(Array("1"))
     @nowarn("msg=unset private variable")
     private[this] var parLimitMultiplier: Int =
-      -1
+      1
 
     private[this] var solveTask: IO[Solver.Solution] =
       null.asInstanceOf[IO[Solver.Solution]]

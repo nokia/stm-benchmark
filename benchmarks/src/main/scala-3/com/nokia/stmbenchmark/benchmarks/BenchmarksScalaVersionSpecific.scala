@@ -36,10 +36,10 @@ object BenchmarksScalaVersionSpecific {
     private[this] var parLimit: Int =
       -1
 
-    @Param(Array("1"))
+    // @Param(Array("1"))
     @nowarn("msg=unset private variable")
     private[this] var parLimitMultiplier: Int =
-      -1
+      1
 
     private[this] var solveTask: Solver.Solution < (Async & Abort[Throwable]) =
       null.asInstanceOf[Solver.Solution]
