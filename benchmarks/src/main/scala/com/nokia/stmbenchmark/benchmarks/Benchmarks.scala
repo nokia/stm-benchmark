@@ -57,7 +57,7 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
     st.runSolveTask()
   }
 
-  @Benchmark
+  // @Benchmark
   def catsStmOnZio(st: CatsStmOnZioState): Solver.Solution = {
     st.runSolveTask()
   }
@@ -67,7 +67,7 @@ class Benchmarks extends BenchmarksScalaVersionSpecific {
     st.runSolveTask()
   }
 
-  @Benchmark
+  // @Benchmark
   def rxnOnZio(st: RxnOnZioState): Solver.Solution = {
     st.runSolveTask()
   }
