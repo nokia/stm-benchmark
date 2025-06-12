@@ -31,8 +31,8 @@ Further reading:
 
 ## Tested STM implementations
 
-We've implemented Lee's algorithm with various STMs in Scala (and one in Kotlin). We've tried to
-implement the algorithm as similar as reasonably possible in every implementation, but we didn't
+We've implemented Lee's algorithm with various STM engines in Scala (and one in Kotlin). We've tried
+to implement the algorithm as similar as reasonably possible in every implementation, but we didn't
 write (intentionally) unidiomatic code just to be more similar. The tested/measured STMs are (in
 alphabetic order) as follows (with some remarks for each implementation):
 
@@ -48,22 +48,35 @@ alphabetic order) as follows (with some remarks for each implementation):
   - Cats STM is parametric in the effect type, so we run with two different `F[_]`s:
     - `cats.effect.IO`, which we run on a Cats Effect runtime.
     - `zio.Task`, which we run on a `zio.Runtime`.
-  - Cats STM doesn't have a built-in `TArray` or similar type, so we use `Array[TVar[A]]` for the
+  - Cats STM doesn't have a built-in `TArray` or similar type, so we use an `Array[TVar[A]]` for the
     board matrices.
 - [CHOAM](https://github.com/durban/choam) in folder [choam](/choam)
-  - This is technically not an STM, but close enough (this algorithm doesn't require
-    _everything_ from an STM, e.g., there is no need for the `orElse` combinator).
+  - CHOAM's `Rxn` is technically not a full-featured STM, but close enough (parallelizing Lee's
+    algorithm doesn't require _everything_ from an STM, e.g., there is no need for the `orElse`
+    combinator, i.e., Haskell-style modular blocking).
+  - We've implemented 4 versions:
+    - `RxnSolver` is the most idiomatic one; it uses the monadic ("programs as values") API
+      of CHOAM, without any unsafe optimizations.
+    - `ErRxnSolver` is very similar, but uses "early release" as an optimization (this is unsafe
+      in general, but safe for Lee's algorithm).
+    - `ErtRxnSolver` is similar, but also uses non-opaque reads as an additional optimization
+      (on top of using early release).
+    - `ImpRxnSolver` uses the low-level imperative API of CHOAM.
   - CHOAM's `Rxn` is parametric in the effect type, so we run with two different `F[_]`s:
     - `cats.effect.IO`, which we run on a Cats Effect runtime.
     - `zio.Task`, which we run on a `zio.Runtime`.
   - For the board matrices we use the built-in `Ref.array` in CHOAM.
+- [kyo-stm](https://github.com/getkyo/kyo/tree/main/kyo-stm/shared/src/main/scala/kyo) in folder [kyo-stm](/kyo-stm)
+  - We run the transactions on Kyo's own runtime (`kyo.scheduler.Scheduler`), with its default configuration.
+  - For the board matrices we use an `Array[TRef[A]]`.
 - [ScalaSTM](https://github.com/scala-stm/scala-stm) in folder [scala-stm](/scala-stm)
   - We've implemented 2 versions:
-    [`ScalaStmSolver`](scala-stm/src/main/scala/com/nokia/stmbenchmark/scalastm/ScalaStmSolver.scala)
-    uses the ScalaSTM API in an idiomatic way, while
-    [`WrStmSolver`](scala-stm/src/main/scala/com/nokia/stmbenchmark/scalastm/WrStmSolver.scala)
-    wraps the ScalaSTM API in a monadic API similar to that of Cats STM or ZSTM. This way
-    we can also get some ideas about the overhead of a monadic ("programs as values") API.
+    - [`ScalaStmSolver`](scala-stm/src/main/scala/com/nokia/stmbenchmark/scalastm/ScalaStmSolver.scala)
+      uses the (mostly) imperative ScalaSTM API in an idiomatic way;
+    - while [`WrStmSolver`](scala-stm/src/main/scala/com/nokia/stmbenchmark/scalastm/WrStmSolver.scala)
+      wraps the ScalaSTM API in a monadic (pure-functional) API similar to that of Cats STM or ZSTM (originally
+      inspired by the STM API in the Haskell standard library). This way we can also get some ideas about
+      the overhead of a monadic ("programs as values") API in Scala.
   - For easy parallelization, we run the ScalaSTM transactions on a Cats Effect runtime.
     ScalaSTM sometimes blocks threads, but does this by using `scala.concurrent.BlockContext`,
     which is supported by the Cats Effect runtime (it starts compensating threads as necessary),
@@ -106,20 +119,23 @@ They can be configured with the following JMH parameters:
     have both some conflicts, and also some possibilities for parallelization.
 - `seed` (`Long`): before solving, the boards are "normalized" with a pseudorandom shuffle; this is the random seed to use.
 - `restrict` (`Int`):
-  - Before solving, the boards are "restricted", i.e., some of the routes are removed from them.
+  - Before solving, the boards can be "restricted", i.e., some of the routes are removed from them.
     This makes solving them easier (because there is less work, and also less chance of conflicts).
   - The value passed to this parameter will be used to `>>` (right shift) the number of routes;
-    e.g., `restrict=1` will remove approximately half of the routes. (The routes to remove are
-    chosen pseudorandomly based on `seed`.)
+    e.g., `restrict=1` will remove approximately half of the routes; `restrict=0` (the default)
+    means to solve the whole board. (The routes to remove are chosen pseudorandomly based on `seed`.)
   - The goal with this parameter is to run more measurements, e.g., with `restrict=2,1,0`, to see
     how the STMs deal with increasing work (and also conflicts).
 - `repeat` (`Int`): very small boards are solved so quickly, that the overhead of submitting
-    the work to an IO runtime causes problems with the measurement; to solve this problem, these
-    small boards can be configured with this parameter to be repeatedly solved in one JMH method
-    invocation.
+    the work to an IO runtime or threadpool causes problems with the measurement; to solve this problem,
+    these small boards can be configured with this parameter to be repeatedly solved in one JMH method
+    invocation. (The default is tuned to the size of the included boards.)
 
 The various parallel implementations are tunable with more parameters:
 
-- `parLimit` (`Int`): parallelism is limited to this value (e.g., with `parTraverseN`), but see below; specify `0` to use
-  `Runtime.getRuntime().availableProcessors()`.
-- `parLimitMultiplier` (`Int`): we use `parLimit * parLimitMultiplier` as the parallelism limit.
+- `-XX:ActiveProcessorCount=N` (as a JVM parameter) restricts the whole JVM to `N` cores. Use this to
+  vary the parallelism of the algorithm. (See the `runBenchmarksNCPU` task in `build.sbt` for running
+  benchmarks while varying this parameter.)
+- `parLimitMultiplier` (as a JMH parameter, an `Int`): we use
+  `Runtime.getRuntime().availableProcessors() * parLimitMultiplier` as the parallelism limit when running
+  transactions. This parameter is useful to test running _more_ transactions in parallel than the number of cores. (The default value is `1`, which means we'll run as many transactions in parallel as many cores are available to the JVM.)
