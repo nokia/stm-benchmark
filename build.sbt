@@ -313,37 +313,55 @@ addCommandAlias("validate", ";staticAnalysis;test")
 addCommandAlias("runBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json")
 
 // For big boards, we want to run JMH in single-shot mode:
-addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json -bm ss -to 3hr -f 1")
+addCommandAlias("runLongBenchmarks", "benchmarks/Jmh/run -foe true -rf json -rff results/jmh-result.json -bm ss -to 3hr")
 
 // Other common JMH arguments:
 // `-p board=mainboard.txt` (specifying parameters)
 // `-prof jfr` (configuring profilers)
 // `-jvmArgsAppend -XX:ActiveProcessorCount=2` (constraining cores used by the forked benchmarking JVMs)
 
+// Running benchmarks on various number of CPU cores:
+import sbt._
 import sbt.complete.Parser
 import sbt.complete.DefaultParsers._
 
-lazy val runBenchmarksNCPU = inputKey[Unit]("run benchmarks on various number of cores (with -XX:ActiveProcessorCount=...)")
+addCommandAlias("runBenchmarksNCPU", "internalRunInternalNCPU short")
+addCommandAlias("runLongBenchmarksNCPU", "internalRunInternalNCPU long")
 
-runBenchmarksNCPU := Def.inputTaskDyn {
+lazy val internalRunInternalNCPU = inputKey[Unit]("used by runBenchmarksNCPU and runLongBenchmarksNCPU")
+internalRunInternalNCPU := Def.inputTaskDyn {
+
   // parse:
+  // - whitespace
+  // - short|long
   // - whitespace
   // - comma separated list of integers
   // - usual (additional) JMH arguments
-  val args: (Seq[Int], Option[Seq[String]]) = ((Space ~> rep1sep(IntBasic, ",")) ~ (spaceDelimited("<arg>")).?).parsed
-  val (ncpuLst, addArgs) = args match {
-    case (lst, Some(args)) => (lst, args)
-    case (lst, None) => (lst, Seq.empty)
+  val args: ((String, Seq[Int]), Option[Seq[String]]) = (Space ~> ((literal("short") | literal("long")) <~ Space) ~ rep1sep(IntBasic, ",") ~ (spaceDelimited("<arg>")).?).parsed
+  val (runLong, ncpuLst, addArgs) = args match {
+    case (("short", lst), addArgs) => (false, lst, addArgs.getOrElse(Seq.empty))
+    case (("long", lst), addArgs) => (true, lst, addArgs.getOrElse(Seq.empty))
+    case x => throw new IllegalArgumentException(x.toString)
   }
   val dryRun = addArgs.contains("-l") || addArgs.contains("-lp")
-  val outFiles = ncpuLst.map { ncpu => s"results/jmh-result-ncpu_${ncpu}.json" }
+  val resultFilePattern: Int => String = if (!runLong) {
+    { ncpu => s"results/jmh-result-ncpu_${ncpu}.json" }
+  } else {
+    { ncpu => s"results/jmh-result-long-ncpu_${ncpu}.json" }
+  }
+  val outFiles = ncpuLst.map(resultFilePattern)
+
   Def.sequential(
     ncpuLst.map { ncpu =>
+      val resultFile = resultFilePattern(ncpu)
       Def.taskDyn {
         val additionalArgs = " " + addArgs.mkString(" ")
-        (benchmarks / Jmh / run).toTask(
-          s" -foe true -rf json -rff results/jmh-result-ncpu_${ncpu}.json -jvmArgsAppend -XX:ActiveProcessorCount=${ncpu}${additionalArgs}"
-        )
+        val jmhArgs = if (!runLong) {
+          s" -foe true -rf json -rff ${resultFile} -jvmArgsAppend -XX:ActiveProcessorCount=${ncpu}${additionalArgs}"
+        } else {
+          s" -foe true -rf json -rff ${resultFile} -bm ss -to 3hr -jvmArgsAppend -XX:ActiveProcessorCount=${ncpu}${additionalArgs}"
+        }
+        (benchmarks / Jmh / run).toTask(jmhArgs)
       }
     } ++ (if (dryRun) {
       Nil
@@ -352,7 +370,7 @@ runBenchmarksNCPU := Def.inputTaskDyn {
         MergeBenchResults.mergeBenchResultsInternal(
           (benchmarks / baseDirectory).value,
           (benchmarks / streams).value.log,
-          "results/jmh-result.json",
+          if (!runLong) "results/jmh-result.json" else "results/jmh-result-long.json",
           outFiles.toList,
           ncpuLst.toList,
         )
