@@ -35,6 +35,7 @@ object Tools extends AutoPlugin {
     autoImport.addBenchParam := addBenchParamImpl.evaluated,
     autoImport.removeBenchParam := removeBenchParamImpl.evaluated,
     autoImport.moveParamValueToName := moveParamValueToNameImpl.evaluated,
+    autoImport.renameBenchmarkResult := renameBenchmarkResultImpl.evaluated,
   )
 
   final object autoImport {
@@ -42,6 +43,7 @@ object Tools extends AutoPlugin {
     lazy val addBenchParam = inputKey[Unit]("addBenchParam")
     lazy val removeBenchParam = inputKey[Unit]("removeBenchParam")
     lazy val moveParamValueToName = inputKey[Unit]("moveParamValueToName")
+    lazy val renameBenchmarkResult = inputKey[Unit]("renameBenchmarkResult")
   }
 
   private lazy val mergeBenchResultsImpl = Def.inputTask[Unit] {
@@ -78,6 +80,12 @@ object Tools extends AutoPlugin {
     transformFilesTask(
       (p, v) => s"Moving value of param '${p}' to benchmark name in files:",
       MergeBenchResults.moveParamValueToName,
+    )
+
+  private lazy val renameBenchmarkResultImpl =
+    transformFilesTask(
+      (p, v) => s"Renaming benchmark results '${p}' -> '${v}' in files:",
+      MergeBenchResults.renameBenchmarkResult,
     )
 
   private def transformFilesTask(
@@ -181,6 +189,15 @@ object MergeBenchResults {
     } else {
       br
     }
+  }
+
+  final def renameBenchmarkResult(
+    br: BenchmarkResult,
+    from: String,
+    to: String
+  ): BenchmarkResult = {
+    val name = br.benchmark
+    br.copy(benchmark = name.replace(from, to))
   }
 
   final def mergeBenchResults(
