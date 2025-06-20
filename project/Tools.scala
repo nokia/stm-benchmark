@@ -34,12 +34,14 @@ object Tools extends AutoPlugin {
     autoImport.mergeBenchResults := mergeBenchResultsImpl.evaluated,
     autoImport.addBenchParam := addBenchParamImpl.evaluated,
     autoImport.removeBenchParam := removeBenchParamImpl.evaluated,
+    autoImport.moveParamValueToName := moveParamValueToNameImpl.evaluated,
   )
 
   final object autoImport {
     lazy val mergeBenchResults = inputKey[Unit]("mergeBenchResults")
     lazy val addBenchParam = inputKey[Unit]("addBenchParam")
     lazy val removeBenchParam = inputKey[Unit]("removeBenchParam")
+    lazy val moveParamValueToName = inputKey[Unit]("moveParamValueToName")
   }
 
   private lazy val mergeBenchResultsImpl = Def.inputTask[Unit] {
@@ -70,6 +72,12 @@ object Tools extends AutoPlugin {
     transformFilesTask(
       (p, v) => s"Removing param '${p}=${v}' from files:",
       MergeBenchResults.removeParam,
+    )
+
+  private lazy val moveParamValueToNameImpl =
+    transformFilesTask(
+      (p, v) => s"Moving value of param '${p}' to benchmark name in files:",
+      MergeBenchResults.moveParamValueToName,
     )
 
   private def transformFilesTask(
@@ -159,6 +167,20 @@ object MergeBenchResults {
       br.params
     }
     br.copy(params = newParams)
+  }
+
+  final def moveParamValueToName(
+    br: BenchmarkResult,
+    param: String,
+    dontCare: String
+  ): BenchmarkResult = {
+    if (br.params.contains(param)) {
+      val paramValue: String = br.params(param).flatMap(_.asString).getOrElse(throw new Exception)
+      val newParams = br.params.remove(param)
+      br.copy(benchmark = br.benchmark + paramValue, params = newParams)
+    } else {
+      br
+    }
   }
 
   final def mergeBenchResults(
