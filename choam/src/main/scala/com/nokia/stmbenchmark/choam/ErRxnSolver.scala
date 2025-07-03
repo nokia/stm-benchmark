@@ -85,8 +85,7 @@ object ErRxnSolver {
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
                           val ref = depth(adjacent.y, adjacent.x)
-                          Rxn.unsafe.tentativeRead(ref).flatMapF { ticket =>
-                            val d = ticket.unsafePeek
+                          Rxn.unsafe.tentativeRead(ref).flatMapF { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
                               cost(adjacent.y, adjacent.x).set1(newCost).as(Chain(adjacent))
@@ -102,7 +101,7 @@ object ErRxnSolver {
 
                 mkNewWf.flatMap { newWavefront =>
                   if (newWavefront.isEmpty) {
-                    Axn.panic(new Solver.Stuck)
+                    Axn.unsafe.panic(new Solver.Stuck)
                   } else {
                     cost(endPoint.y, endPoint.x).get.flatMapF { costAtRouteEnd =>
                       if (costAtRouteEnd > 0) {
