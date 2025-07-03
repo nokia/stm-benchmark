@@ -30,7 +30,7 @@ object ImpRxnSolver {
     F.pure(
       new Solver[F] {
 
-        import api.{ atomically, atomicallyAsync }
+        import api.{ atomically, atomicallyInAsync }
 
         private[this] final def debug(msg: String): Unit = {
           if (log) println(msg)
@@ -49,7 +49,7 @@ object ImpRxnSolver {
           val obstructed = BoolMatrix.obstructedFromBoard(board)
 
           def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
-            atomicallyAsync(strategy) { implicit txn =>
+            atomicallyInAsync(strategy) { implicit txn =>
               if (log) debug(s"Solving $route")
               val cost = expand(depth, route)
               val costStr = cost.unsafeDebug(debug = log)(i => f"$i%2s", txn)

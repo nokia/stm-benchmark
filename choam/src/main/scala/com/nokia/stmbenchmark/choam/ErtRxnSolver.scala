@@ -13,10 +13,8 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.core.{ Rxn, Axn, Ref }
+import dev.tauri.choam.core.{ Rxn, Axn, Ref, AsyncReactive, RetryStrategy }
 import Rxn.unsafe.Ticket
-import dev.tauri.choam.core.RetryStrategy
-import dev.tauri.choam.async.AsyncReactive
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 

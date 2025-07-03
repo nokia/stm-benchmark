@@ -16,7 +16,7 @@ import cats.effect.unsafe.IORuntime
 import zio.Task
 
 import dev.tauri.choam.ChoamRuntime
-import dev.tauri.choam.async.AsyncReactive
+import dev.tauri.choam.core.AsyncReactive
 
 import org.openjdk.jmh.annotations._
 

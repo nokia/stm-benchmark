@@ -14,7 +14,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 
 import dev.tauri.choam.ChoamRuntime
-import dev.tauri.choam.async.AsyncReactive
+import dev.tauri.choam.core.AsyncReactive
 
 import common.JvmCeIoSolverSpec
 import common.Solver
