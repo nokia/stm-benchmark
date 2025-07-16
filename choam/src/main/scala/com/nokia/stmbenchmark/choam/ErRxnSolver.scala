@@ -13,7 +13,7 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.core.{ Rxn, Axn, AsyncReactive, RetryStrategy }
+import dev.tauri.choam.core.{ Rxn, AsyncReactive, RetryStrategy }
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
@@ -41,8 +41,8 @@ object ErRxnSolver {
       private[this] val runConfig: RetryStrategy =
         strategy
 
-      private[this] final def debug(msg: String): Axn[Unit] = {
-        if (log) Axn.unit.map { _ => println(msg) }
+      private[this] final def debug(msg: String): Rxn[Unit] = {
+        if (log) Rxn.unit.map { _ => println(msg) }
         else Rxn.unit
       }
 
@@ -55,8 +55,8 @@ object ErRxnSolver {
         val obstructed = BoolMatrix.obstructedFromBoard(board)
 
         def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
-          val act: Axn[List[Point]] = for {
-            _ <- if (log) debug(s"Solving $route") else Axn.unit
+          val act: Rxn[List[Point]] = for {
+            _ <- if (log) debug(s"Solving $route") else Rxn.unit
             cost <- expand(depth, route)
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
             _ <- debug("Cost after `expand`:\n" + costStr)
@@ -65,27 +65,27 @@ object ErRxnSolver {
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
             _ <- lay(depth, solution)
           } yield solutionList
-          ar.applyAsync(act, null, runConfig)
+          ar.applyAsync(act, runConfig)
         }
 
-        def expand(depth: RefMatrix[Int], route: Route): Axn[RefMatrix[Int]] = {
+        def expand(depth: RefMatrix[Int], route: Route): Rxn[RefMatrix[Int]] = {
           val startPoint = route.a
           val endPoint = route.b
 
-          RefMatrix[Int](depth.height, depth.width, 0).flatMapF { cost =>
-            cost(startPoint.y, startPoint.x).set1(1).flatMapF { _ =>
+          RefMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
+            cost(startPoint.y, startPoint.x).set1(1).flatMap { _ =>
 
-              def go(wavefront: Chain[Point]): Axn[Chain[Point]] = {
+              def go(wavefront: Chain[Point]): Rxn[Chain[Point]] = {
                 val mkNewWf = wavefront.traverse { point =>
-                  cost(point.y, point.x).get.flatMapF { pointCost =>
+                  cost(point.y, point.x).get.flatMap { pointCost =>
                     Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
                         Rxn.pure(Chain.empty)
                       } else {
-                        cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
+                        cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
                           val ref = depth(adjacent.y, adjacent.x)
-                          Rxn.unsafe.tentativeRead(ref).flatMapF { d =>
+                          Rxn.unsafe.tentativeRead(ref).flatMap { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
                               cost(adjacent.y, adjacent.x).set1(newCost).as(Chain(adjacent))
@@ -101,13 +101,13 @@ object ErRxnSolver {
 
                 mkNewWf.flatMap { newWavefront =>
                   if (newWavefront.isEmpty) {
-                    Axn.unsafe.panic(new Solver.Stuck)
+                    Rxn.unsafe.panic(new Solver.Stuck)
                   } else {
-                    cost(endPoint.y, endPoint.x).get.flatMapF { costAtRouteEnd =>
+                    cost(endPoint.y, endPoint.x).get.flatMap { costAtRouteEnd =>
                       if (costAtRouteEnd > 0) {
                         newWavefront.traverse { marked =>
                           cost(marked.y, marked.x).get
-                        }.flatMapF { newCosts =>
+                        }.flatMap { newCosts =>
                           val minimumNewCost = newCosts.minimumOption.get // TODO: partial function
                           if (costAtRouteEnd < minimumNewCost) {
                             // no new location has lower cost than the
@@ -133,7 +133,7 @@ object ErRxnSolver {
           }
         }
 
-        def solve(route: Route, cost: RefMatrix[Int]): Axn[NonEmptyChain[Point]] = {
+        def solve(route: Route, cost: RefMatrix[Int]): Rxn[NonEmptyChain[Point]] = {
           // we're going *back* from the route end:
           val startPoint = route.b
           val endPoint = route.a
@@ -148,7 +148,7 @@ object ErRxnSolver {
           } (p = { solution => solution.head != endPoint })
         }
 
-        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Axn[Unit] = {
+        def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Rxn[Unit] = {
           solution.traverse_ { point =>
             val ref = depth(point.y, point.x)
             ref.update(_ + 1).as(ref)

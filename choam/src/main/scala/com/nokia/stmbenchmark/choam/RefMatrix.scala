@@ -10,7 +10,7 @@ package choam
 import cats.Show
 import cats.syntax.all._
 
-import dev.tauri.choam.core.{ Ref, Axn, Reactive }
+import dev.tauri.choam.core.{ Rxn, Ref, Reactive }
 import dev.tauri.choam.unsafe.InRxn
 
 sealed abstract class RefMatrix[A] {
@@ -21,9 +21,9 @@ sealed abstract class RefMatrix[A] {
 
   def apply(row: Int, col: Int): Ref[A]
 
-  def debug(debug: Boolean)(implicit s: Show[A]): Axn[String] = {
+  def debug(debug: Boolean)(implicit s: Show[A]): Rxn[String] = {
     if (debug) {
-      val act: Axn[List[List[A]]] = (0 until height).toList.traverse { row =>
+      val act: Rxn[List[List[A]]] = (0 until height).toList.traverse { row =>
         (0 until width).toList.traverse { col =>
           val ref = apply(row, col)
           ref.get
@@ -31,7 +31,7 @@ sealed abstract class RefMatrix[A] {
       }
       act.map(_.map(_.map(s.show).mkString(", ")).mkString("\n"))
     } else {
-      Axn.pure("")
+      Rxn.pure("")
     }
   }
 
@@ -62,7 +62,7 @@ object RefMatrix {
   private[this] val allocStr =
     Ref.Array.AllocationStrategy(sparse = true, flat = true, padded = false)
 
-  def apply[A](h: Int, w: Int, initial: A): Axn[RefMatrix[A]] = {
+  def apply[A](h: Int, w: Int, initial: A): Rxn[RefMatrix[A]] = {
     require(h >= 0)
     require(w >= 0)
     val len = h * w

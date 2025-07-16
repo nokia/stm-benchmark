@@ -13,7 +13,7 @@ import cats.effect.syntax.all._
 import cats.effect.Async
 import cats.effect.std.Console
 
-import dev.tauri.choam.core.{ Rxn, Axn, Ref, AsyncReactive, RetryStrategy }
+import dev.tauri.choam.core.{ Rxn, Ref, AsyncReactive, RetryStrategy }
 import Rxn.unsafe.Ticket
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
@@ -43,8 +43,8 @@ object ErtRxnSolver {
       private[this] val runConfig: RetryStrategy =
         strategy
 
-      private[this] final def debug(msg: String): Axn[Unit] = {
-        if (log) Axn.unit.map { _ => println(msg) }
+      private[this] final def debug(msg: String): Rxn[Unit] = {
+        if (log) Rxn.unit.map { _ => println(msg) }
         else Rxn.unit
       }
 
@@ -57,8 +57,8 @@ object ErtRxnSolver {
         val obstructed = BoolMatrix.obstructedFromBoard(board)
 
         def solveOneRoute(depth: RefMatrix[Int], route: Route): F[List[Point]] = {
-          val act: Axn[List[Point]] = for {
-            _ <- if (log) debug(s"Solving $route") else Axn.unit
+          val act: Rxn[List[Point]] = for {
+            _ <- if (log) debug(s"Solving $route") else Rxn.unit
             costAndTickets <- expand(depth, route)
             (cost, tickets) = costAndTickets
             costStr <- cost.debug(debug = log)(i => f"$i%2s")
@@ -68,15 +68,15 @@ object ErtRxnSolver {
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
             _ <- lay(route, depth, solution, tickets)
           } yield solutionList
-          ar.applyAsync(act, null, runConfig)
+          ar.applyAsync(act, runConfig)
         }
 
-        def expand(depth: RefMatrix[Int], route: Route): Axn[(RefMatrix[Int], Map[Ref[Int], Ticket[Int]])] = {
+        def expand(depth: RefMatrix[Int], route: Route): Rxn[(RefMatrix[Int], Map[Ref[Int], Ticket[Int]])] = {
           val startPoint = route.a
           val endPoint = route.b
 
-          RefMatrix[Int](depth.height, depth.width, 0).flatMapF { cost =>
-            cost(startPoint.y, startPoint.x).set1(1).flatMapF { _ =>
+          RefMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
+            cost(startPoint.y, startPoint.x).set1(1).flatMap { _ =>
 
               def merge(
                 acc: (Chain[Point], Map[Ref[Int], Ticket[Int]]),
@@ -95,15 +95,15 @@ object ErtRxnSolver {
               def go(
                 wavefront: Chain[Point],
                 collectedTickets: Map[Ref[Int], Ticket[Int]],
-              ): Axn[(Chain[Point], Map[Ref[Int], Ticket[Int]])] = {
+              ): Rxn[(Chain[Point], Map[Ref[Int], Ticket[Int]])] = {
                 val mkNewWf = wavefront.traverse { point =>
-                  cost(point.y, point.x).get.flatMapF { pointCost =>
+                  cost(point.y, point.x).get.flatMap { pointCost =>
                     Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
                         Rxn.pure((Chain.empty[Point], Map.empty[Ref[Int], Ticket[Int]]))
                       } else {
-                        cost(adjacent.y, adjacent.x).get.flatMapF { currentCost =>
+                        cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
                           val ref = depth(adjacent.y, adjacent.x)
                           // TODO: Is this really correct? We're relying
                           // TODO: on data read with breaking opacity.
@@ -111,7 +111,7 @@ object ErtRxnSolver {
                           // TODO: really early release; it's just choosing
                           // TODO: what to write based on possibly inconsistent
                           // TODO: reads.)
-                          Rxn.unsafe.ticketRead(ref).flatMapF { ticket =>
+                          Rxn.unsafe.ticketRead(ref).flatMap { ticket =>
                             val d = ticket.unsafePeek
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
@@ -135,13 +135,13 @@ object ErtRxnSolver {
 
                 mkNewWf.flatMap { case (newWavefront, collectedTickets) =>
                   if (newWavefront.isEmpty) {
-                    Axn.unsafe.panic(new Solver.Stuck)
+                    Rxn.unsafe.panic(new Solver.Stuck)
                   } else {
-                    cost(endPoint.y, endPoint.x).get.flatMapF { costAtRouteEnd =>
+                    cost(endPoint.y, endPoint.x).get.flatMap { costAtRouteEnd =>
                       if (costAtRouteEnd > 0) {
                         newWavefront.traverse { marked =>
                           cost(marked.y, marked.x).get
-                        }.flatMapF { newCosts =>
+                        }.flatMap { newCosts =>
                           val minimumNewCost = newCosts.minimumOption.get // TODO: partial function
                           if (costAtRouteEnd < minimumNewCost) {
                             // no new location has lower cost than the
@@ -169,7 +169,7 @@ object ErtRxnSolver {
           }
         }
 
-        def solve(route: Route, cost: RefMatrix[Int]): Axn[NonEmptyChain[Point]] = {
+        def solve(route: Route, cost: RefMatrix[Int]): Rxn[NonEmptyChain[Point]] = {
           // we're going *back* from the route end:
           val startPoint = route.b
           val endPoint = route.a
@@ -184,7 +184,12 @@ object ErtRxnSolver {
           } (p = { solution => solution.head != endPoint })
         }
 
-        def lay(route: Route, depth: RefMatrix[Int], solution: NonEmptyChain[Point], collectedTickets: Map[Ref[Int], Ticket[Int]]): Axn[Unit] = {
+        def lay(
+          route: Route,
+          depth: RefMatrix[Int],
+          solution: NonEmptyChain[Point],
+          collectedTickets: Map[Ref[Int], Ticket[Int]],
+        ): Rxn[Unit] = {
           solution.traverse_ { point =>
             val ref = depth(point.y, point.x)
             if (point == route.a) {
