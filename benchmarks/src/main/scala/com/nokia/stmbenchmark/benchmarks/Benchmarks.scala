@@ -305,7 +305,7 @@ object Benchmarks {
       IO.asyncForIO
 
     private[this] val runtime: ChoamRuntime =
-      ChoamRuntime[SyncIO].allocated.unsafeRunSync()._1
+      ChoamRuntime.make[SyncIO].allocated.unsafeRunSync()._1
 
     private[this] implicit val asyncReactiveInstance: AsyncReactive[IO] =
       AsyncReactive.fromIn[SyncIO, IO](this.runtime).allocated.unsafeRunSync()._1
@@ -326,7 +326,7 @@ object Benchmarks {
       zio.interop.catz.asyncInstance
 
     private[this] val runtime: ChoamRuntime =
-      this.unsafeRunSync(ChoamRuntime[Task].allocated)._1
+      this.unsafeRunSync(ChoamRuntime.make[Task].allocated)._1
 
     private[this] implicit val asyncReactiveInstance: AsyncReactive[Task] =
       this.unsafeRunSync(AsyncReactive.from[Task](this.runtime).allocated)._1

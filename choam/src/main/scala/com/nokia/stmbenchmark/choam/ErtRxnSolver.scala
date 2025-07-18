@@ -76,7 +76,7 @@ object ErtRxnSolver {
           val endPoint = route.b
 
           RefMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
-            cost(startPoint.y, startPoint.x).set1(1).flatMap { _ =>
+            cost(startPoint.y, startPoint.x).set(1).flatMap { _ =>
 
               def merge(
                 acc: (Chain[Point], Map[Ref[Int], Ticket[Int]]),
@@ -115,7 +115,7 @@ object ErtRxnSolver {
                             val d = ticket.unsafePeek
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set1(newCost).as(
+                              cost(adjacent.y, adjacent.x).set(newCost).as(
                                 (Chain(adjacent), Map(ref -> ticket))
                               )
                             } else {

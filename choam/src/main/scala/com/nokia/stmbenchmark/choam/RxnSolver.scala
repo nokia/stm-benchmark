@@ -76,7 +76,7 @@ object RxnSolver {
           val endPoint = route.b
 
           RefMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
-            cost(startPoint.y, startPoint.x).set1(1).flatMap { _ =>
+            cost(startPoint.y, startPoint.x).set(1).flatMap { _ =>
 
               def go(wavefront: Chain[Point]): Rxn[Chain[Point]] = {
                 val mkNewWf = wavefront.traverse { point =>
@@ -90,7 +90,7 @@ object RxnSolver {
                           depth(adjacent.y, adjacent.x).get.flatMap { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set1(newCost).as(Chain(adjacent))
+                              cost(adjacent.y, adjacent.x).set(newCost).as(Chain(adjacent))
                             } else {
                               Rxn.pure(Chain.empty)
                             }

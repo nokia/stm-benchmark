@@ -45,7 +45,7 @@ trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
 
   protected[this] final override def solverRes: Resource[IO, Solver[IO]] = {
     Resource.eval(IO { Runtime.getRuntime().availableProcessors() }).flatMap { numCpu =>
-      ChoamRuntime[IO].flatMap { rt =>
+      ChoamRuntime.make[IO].flatMap { rt =>
         AsyncReactive.from[IO](rt).flatMap { implicit ar =>
           Resource.eval(this.mkSolver(rt, numCpu)(using ar))
         }
