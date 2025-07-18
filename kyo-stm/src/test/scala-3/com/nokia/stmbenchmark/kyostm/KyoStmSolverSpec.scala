@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import scala.concurrent.duration._
 
-import kyo.{ <, Abort, Async, Cats => KyoCats, IO }
+import kyo.{ <, Abort, Async, Cats => KyoCats, Sync }
 import cats.effect.{ IO => CatsIO }
 import fs2.Stream
 
@@ -27,7 +27,7 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
 
   private[this] lazy val solver: Solver[<[*, Async & Abort[Throwable]]] = {
     unsafeRunSyncIO(
-      IO { Runtime.getRuntime().availableProcessors() }.map { numCpu =>
+      Sync.defer { Runtime.getRuntime().availableProcessors() }.map { numCpu =>
         KyoStmSolver(
           parLimit = numCpu,
           log = false,
@@ -50,9 +50,9 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
     testKyo(resourceNameAndOpts.withName(nameForMunit)) {
       val loadBoard = KyoCats.get(Board.fromResource[CatsIO](resourceNameAndOpts.name))
       loadBoard.map { board =>
-        IO { this.normalizeAndRestrict(board, restrict) }.map { b =>
+        Sync.defer { this.normalizeAndRestrict(board, restrict) }.map { b =>
           solver.solve(b).map { solution =>
-            IO {
+            Sync.defer {
               Abort.catching[Throwable] {
                 checkSolutionInternal(
                   resourceNameAndOpts,
@@ -70,9 +70,9 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
   }
 
   testKyo("empty.txt") {
-    IO { Board.empty(10, 10).normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
+    Sync.defer { Board.empty(10, 10).normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
       solver.solve(b).map { solution =>
-        IO {
+        Sync.defer {
           Abort.catching[Throwable] {
             checkSolutionInternal("empty.txt", b, solution)
           }
@@ -97,9 +97,9 @@ final class KyoStmSolverSpec extends FunSuite with KyoInteropMunit with MunitUti
       ).mkString("\n")
     )
     KyoCats.get(Board.fromStream(s)).map { board =>
-      IO { board.normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
+      Sync.defer { board.normalize(ThreadLocalRandom.current().nextLong()) }.map { b =>
         solver.solve(b).map { solution =>
-          IO {
+          Sync.defer {
             Abort.catching[Throwable] {
               checkSolutionInternal(
                 "minimal.txt".tag(Verbose),

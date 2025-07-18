@@ -9,7 +9,7 @@ package kyostm
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import kyo.{ <, Async, Abort, IO, STM, TRef, Fiber }
+import kyo.{ <, Async, Abort, Sync, STM, TRef, Fiber }
 
 import munit.FunSuite
 
@@ -20,22 +20,22 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
   final class MyException(msg: String) extends Exception(msg)
 
   test("unsafeRunSyncIO successful") {
-    val tsk = IO { 42 }
+    val tsk = Sync.defer { 42 }
     assertEquals(unsafeRunSyncIO(tsk), 42)
   }
 
   test("unsafeRunSyncIO exception".fail) {
-    val tsk: Int < IO = IO { throw new Exception("x"); 42 }
+    val tsk: Int < Sync = Sync.defer { throw new Exception("x"); 42 }
     assertEquals(unsafeRunSyncIO(tsk), 42)
   }
 
   test("unsafeRunSyncIO panic".fail) {
-    val tsk: Int < IO = Abort.panic(new MyException("y"))
+    val tsk: Int < Sync = Abort.panic(new MyException("y"))
     assertEquals(unsafeRunSyncIO(tsk), 42)
   }
 
   test("unsafeForkAndRunSync successful") {
-    val tsk: Int < (Async & Abort[Throwable]) = IO { 42 }
+    val tsk: Int < (Async & Abort[Throwable]) = Sync.defer { 42 }
     assertEquals(unsafeForkAndRunSync(tsk), 42)
   }
 
@@ -45,12 +45,12 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
   }
 
   test("unsafeForkAndRunSync exception in IO".fail) {
-    val tsk: Int < (Async & Abort[Throwable]) = IO { throw new Exception("q"); 42 }
+    val tsk: Int < (Async & Abort[Throwable]) = Sync.defer { throw new Exception("q"); 42 }
     unsafeForkAndRunSync(tsk)
   }
 
   test("unsafeForkAndRunSync exception in IO map".fail) {
-    val tsk: Int < (Async & Abort[Throwable]) = IO { 42 }.map { i =>
+    val tsk: Int < (Async & Abort[Throwable]) = Sync.defer { 42 }.map { i =>
       throw new Exception("r")
       i + 1
     }
@@ -58,7 +58,7 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
   }
 
   test("unsafeForkAndRunSync panic in Async map".fail) {
-    val tsk: Int < (Async & Abort[Throwable]) = Async.run(IO { 42 }).map { fiber =>
+    val tsk: Int < (Async & Abort[Throwable]) = Fiber.init(Sync.defer { 42 }).map { fiber =>
       fiber.get.map { _ =>
         Abort.panic(new MyException("s"))
       }
@@ -67,7 +67,7 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
   }
 
   test("unsafeForkAndRunSync exception in Async map".fail) {
-    val tsk: Int < (Async & Abort[Throwable]) = Async.run(IO { 42 }).map { fiber =>
+    val tsk: Int < (Async & Abort[Throwable]) = Fiber.init(Sync.defer { 42 }).map { fiber =>
       fiber.get.map { i =>
         throw new Exception("t")
         i + 1
@@ -106,14 +106,14 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
 
   test("unsafeToFuture successful") {
     val i = new AtomicInteger
-    val tsk: Unit < (Async & Abort[Throwable]) = IO { i.set(42) }
+    val tsk: Unit < (Async & Abort[Throwable]) = Sync.defer { i.set(42) }
     this.unsafeToFuture(tsk).map { _ =>
       assertEquals(i.get(), 42)
     } (this.munitExecutionContext)
   }
 
   testKyo("unsafeToFuture exception in IO".fail) {
-    val tsk: Unit < (Async & Abort[Throwable]) = IO {
+    val tsk: Unit < (Async & Abort[Throwable]) = Sync.defer {
       throw new Exception("a")
     }
     tsk
@@ -134,7 +134,7 @@ final class KyoInteropSpec extends FunSuite with KyoInteropMunit with MunitUtils
   }
 
   testKyo("unsafeToFuture exception in Async map".fail) {
-    val fork: Fiber[Throwable, Int] < Async = Async.run(42)
+    val fork: Fiber[Int, Abort[Throwable]] < Async = Fiber.init(42)
     fork.map { fib =>
       fib.get.map { i =>
         throw new Exception("d")

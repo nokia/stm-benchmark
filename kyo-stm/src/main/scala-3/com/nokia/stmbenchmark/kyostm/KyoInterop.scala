@@ -10,20 +10,20 @@ package kyostm
 import scala.concurrent.Future
 import scala.util.Try
 
-import kyo.{ <, Async, Abort, Fiber, IO }
+import kyo.{ <, Sync, Async, Abort, Fiber }
 
 trait KyoInterop {
 
   final def unsafeForkAndRunSync[A](tsk: A < (Async & Abort[Throwable])): A = {
     import kyo.AllowUnsafe.embrace.danger
-    IO.Unsafe.evalOrThrow(
-      Async.run(tsk).flatMap(_.block(kyo.Duration.Infinity))
+    Sync.Unsafe.evalOrThrow(
+      Fiber.init(tsk).flatMap(_.block(kyo.Duration.Infinity))
     ).getOrThrow
   }
 
-  final def unsafeRunSyncIO[A](task: A < IO): A = {
+  final def unsafeRunSyncIO[A](task: A < Sync): A = {
     import kyo.AllowUnsafe.embrace.danger
-    IO.Unsafe.evalOrThrow(task)
+    Sync.Unsafe.evalOrThrow(task)
   }
 
   final def unsafeToFuture[A](tsk: A < (Async & Abort[Throwable])): Future[A] = {
@@ -31,12 +31,12 @@ trait KyoInterop {
   }
 
   private[this] final def handleAsync[A](tsk: A < (Async & Abort[Throwable])): Future[A] = {
-    val futIO: Future[A] < IO = Async.run[Throwable, A, Any](tsk).map(_.toFuture)
+    val futIO: Future[A] < Sync = Fiber.init[Throwable, A, Any, Any](tsk).map(_.toFuture)
     this.handleIO[Future[A]](futIO).flatten
   }
 
-  private[this] final def handleIO[A](tsk: A < (IO & Abort[Throwable])): Future[A] = {
+  private[this] final def handleIO[A](tsk: A < (Sync & Abort[Throwable])): Future[A] = {
     import kyo.AllowUnsafe.embrace.danger
-    Future.fromTry(Try { IO.Unsafe.evalOrThrow(tsk) })
+    Future.fromTry(Try { Sync.Unsafe.evalOrThrow(tsk) })
   }
 }

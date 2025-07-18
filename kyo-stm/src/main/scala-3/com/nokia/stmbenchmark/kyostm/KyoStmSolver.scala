@@ -7,7 +7,7 @@
 package com.nokia.stmbenchmark
 package kyostm
 
-import kyo.{ <, Abort, Async, Chunk, IO, STM, Kyo, Schedule, Frame, Meter }
+import kyo.{ <, Abort, Async, Chunk, Sync, STM, Kyo, Schedule, Frame, Meter, Scope }
 
 import common.{ Board, BoolMatrix, Point, Route, Solver }
 
@@ -26,11 +26,11 @@ object KyoStmSolver {
     parLimit: Int,
     log: Boolean,
     retrySchedule: Schedule = defaultRetrySchedule,
-  ): Solver[<[*, Async & Abort[Throwable]]] < IO = IO {
+  ): Solver[<[*, Async & Abort[Throwable]]] < Sync = Sync.defer {
     new Solver[<[*, Async & Abort[Throwable]]] {
 
-      private[this] final def debug(msg: String): Unit < IO = {
-        if (log) IO { println(msg) }
+      private[this] final def debug(msg: String): Unit < Sync = {
+        if (log) Sync.defer { println(msg) }
         else ()
       }
 
@@ -38,18 +38,22 @@ object KyoStmSolver {
       private[this] final def parallelN[A](parallelism: Int)(tasks: Seq[A < (Abort[Throwable] & Async)])(
         implicit frame: Frame
       ): Seq[A] < (Abort[Throwable] & Async) = {
-        Meter.initSemaphore(concurrency = parallelism, reentrant = false).map { semaphore =>
+        val scoped: Seq[A]< (Abort[Throwable] & Async & Scope) = Meter.initSemaphore(
+          concurrency = parallelism,
+          reentrant = false
+        ).map { semaphore =>
           Async.collectAll(tasks.map { task =>
             semaphore.run(task)
           }, concurrency = Integer.MAX_VALUE)
         }
+        Scope.run(scoped)
       }
 
       final override def solve(board: Board.Normalized): Solver.Solution < (Async & Abort[Throwable]) = {
         val obstructed = BoolMatrix.obstructedFromBoard(board)
 
         def solveOneRoute(depth: TMatrix[Int], route: Route): List[Point] < (Async & Abort[Throwable]) = {
-          val txn: List[Point] < STM = (if (log) debug(s"Solving $route") else () : Unit < IO).map { _ =>
+          val txn: List[Point] < STM = (if (log) debug(s"Solving $route") else () : Unit < Sync).map { _ =>
             expand(depth, route).map { cost =>
               cost.debug(debug = log)(i => f"$i%2s").map { costStr =>
                 debug("Cost after `expand`:\n" + costStr).map { _ =>
@@ -74,9 +78,9 @@ object KyoStmSolver {
             cost.set(startPoint.y, startPoint.x, 1).map { _ =>
 
               def go(wavefront: Chunk[Point]): Chunk[Point] < STM = {
-                val mkNewWf: Chunk[Point] < STM = Kyo.foreach(wavefront) { point =>
+                val mkNewWf: Chunk[Point] < STM = Kyo.foreachConcat(Chunk.from(wavefront)) { point =>
                   cost(point.y, point.x).map { pointCost =>
-                    Kyo.foreach(board.adjacentPoints(point)) { adjacent =>
+                    Kyo.foreachConcat(Chunk.from(board.adjacentPoints(point))) { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
                         Chunk.empty[Point]
@@ -92,9 +96,9 @@ object KyoStmSolver {
                           }
                         }
                       }
-                    }.map(_.flattenChunk)
+                    }
                   }
-                }.map(_.flattenChunk)
+                }
 
                 mkNewWf.map { newWavefront =>
                   if (newWavefront.isEmpty) {
