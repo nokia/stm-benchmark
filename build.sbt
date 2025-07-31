@@ -6,7 +6,7 @@
 
 // Scala versions:
 val scala2 = "2.13.16"
-val scala3 = "3.7.0"
+val scala3 = "3.7.1"
 
 val TestInternal = "test-internal"
 
@@ -265,9 +265,9 @@ lazy val commonSettings = Seq[Setting[_]](
 lazy val dependencies = new {
 
   val catsVersion = "2.13.0"
-  val catsEffectVersion = "3.6.1"
+  val catsEffectVersion = "3.7.0-RC1"
   val catsStmVersion = "0.13.5"
-  val zioVersion = "2.1.19"
+  val zioVersion = "2.1.20"
   val kyoVersion = "1.0-RC1"
   val choamVersion = "0.5.0-RC1"
   val fs2Version = "3.12.0"
