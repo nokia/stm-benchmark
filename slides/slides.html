@@ -210,12 +210,21 @@ count: false
 # Questions?
 
 
+.smaller-font-size[
+  Full benchmark code available at: https://github.com/nokia/stm-benchmark
+]
+
 
     </textarea>
     <script src="remark-0.15.0.min.js">
     </script> <!-- Yes, this NEEDS to be a separate closing tag ... -->
     <script>
       var slideshow = remark.create({
+        navigation: {
+          scroll: false,
+          touch: true,
+          click: true,
+        },
         countIncrementalSlides: false,
       });
     </script>
