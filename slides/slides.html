@@ -14,8 +14,8 @@
         font-weight: normal;
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
-      .left-column  { width: 49%; float: left; }
-      .right-column { width: 49%; float: right; }
+      .left-column  { width: 50%; float: left; }
+      .right-column { width: 50%; float: right; }
       .smaller-font-size { font-size: smaller; }
       .bottom-three { margin-bottom: 3cm; padding-bottom: 3cm; }
     </style>
@@ -39,7 +39,6 @@ Péter Fazekas<br />
 .smaller-font-size[Nokia Bell Labs]
 ]
 
-
 .smaller-font-size[
 ICSEA 2025, Lisbon, Portugal<br />
 2025-10-01
@@ -49,7 +48,7 @@ ICSEA 2025, Lisbon, Portugal<br />
 
 # Agenda
 
-- What is Software Transactional Memory (STM)?
+- What is Software Transactional Memory?
 - Benchmarking STM implementations
 - Our benchmarks
 - Results and observations
@@ -91,7 +90,7 @@ STM is a general approach to concurrency/parallelism
 - implementations (STM engines) are available for various programming languages (C, C++, Java, Scala, Haskell, ...)
 --
 
-Various benchmark suites, e.g.:
+Various benchmark suites are also available:
   - data structure microbenchmarks
     - binary search trees (implemented with STM), ...
   - STM-specific benchmark suites:
@@ -119,15 +118,23 @@ Various benchmark suites, e.g.:
 
 # Lee's Algorithm (details)
 
+Solve one route:
+
 1. Expansion: start a "wave" from the source of the route
   - count the distance (longer wire costs more)
   - also take into account existing wires (crossing costs more)
-  - stop when destination is reached
+  - stop when the destination is reached
 1. Backtracking: go from destination back to source
   - always choose the lowest cost
 1. Laying the route (it will count as an "existing" wire from now on)
 
-<center><img src="lee_algorithm.png" width="55%" /></center>
+.left-column[
+Solve the whole board:
+
+1. solve all routes; either<br />one-by-one, or in parallel
+]
+
+.right-column[<center><img src="lee_algorithm.png" width="45%" /></center>]
 --
 
 Good for benchmarking STM, because:
@@ -147,13 +154,16 @@ Good for benchmarking STM, because:
   - optimization by weakened consistency (lack of _opacity_)
   - optimization with _early release_
   - functional API wrapper of an imperative STM API (ScalaSTM)
+--
 
 Experimental setup:
 
 - Scala 3.7.0, OpenJDK 21
 - 2× Intel Xeon E5-2680 with 12 physical cores (i.e., 24 cores in total)
-- measured the time needed to lay out routes for various circuit boards
 - performed measurements with JMH (Java Microbenchmark Harness)
+- measured the time needed to lay out routes for
+  - various circuit boards
+  - using a varying number of cores/threads
 
 ---
 
@@ -186,19 +196,18 @@ Experimental setup:
 - The Kotlin STM engine (arrow-fx-stm) beats most of the Scala ones
   - runs on Kotlin coroutines (vs. Scala fibers)
   - see also previous point (imperative vs. functional)
-- Weakening consistency and early release are useful optimizations
-  - on inputs with lots of conflicts
+- Weakening consistency and _early release_ are useful optimizations
+  - especially on inputs with lots of conflicts
 - Maintaining transaction logs (read/write sets) can be expensive
   - specifically for ZSTM and Cats STM
 
 
 ---
 
-
 # Future work
 
 - More profiling
-- Optimization
+- Optimizing some of these STM engines
 
 ---
 
