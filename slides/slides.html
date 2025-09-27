@@ -72,7 +72,7 @@ ICSEA 2025, Lisbon, Portugal<br />
 
 ## Why is it useful?
 
-High level concurrency and parallelism, without
+High level approach to concurrency and parallelism, without
 (most of) the downsides of using manual locks
 
 - we can read/write multiple memory locations (intertwined with
@@ -95,7 +95,7 @@ Various benchmark suites are also available:
     - binary search trees (implemented with STM), ...
   - STM-specific benchmark suites:
     - STAMP, STMBench7
-  - LeeTM:
+  - Lee-TM:
     - Lee's algorithm, parallelized with STM
     - previously used to measure STMs implemented for C and Ruby
 
@@ -105,7 +105,7 @@ Various benchmark suites are also available:
 
 - A well-known algorithm to solve the circuit-board routing problem
 - Lays out "wires" on a circuit board
-  - (to connect source-destination endpoints)
+  - to connect source-destination endpoints
 - Minimizes the *cost* of a route
   - longer routes cost more
   - crossing wires also cost more
@@ -145,7 +145,7 @@ Good for benchmarking STM, because:
 
 # Our benchmarks
 
-- Goal: benchmark STM implementations on the JVM (Java Virtual Machine)
+- Benchmarked STM implementations on the JVM (Java Virtual Machine)
 - Selected various STM engines for functional programming languages:
   - Scala: Cats STM, CHOAM, Kyo STM, ScalaSTM, ZSTM
   - Kotlin: arrow-fx-stm
@@ -192,7 +192,8 @@ Experimental setup:
 # Observations
 
 - STM engines with purely _functional_ APIs tend to be slower than<br />ones with _imperative_ APIs
-  - GC pressure, interpretation overhead
+  - GC pressure
+  - interpretation overhead
 - The Kotlin STM engine (arrow-fx-stm) beats most of the Scala ones
   - runs on Kotlin coroutines (vs. Scala fibers)
   - see also previous point (imperative vs. functional)
@@ -220,7 +221,7 @@ count: false
 
 
 .smaller-font-size[
-  Full benchmark code available at: https://github.com/nokia/stm-benchmark
+Benchmark code is open source at: https://github.com/nokia/stm-benchmark
 ]
 
 
