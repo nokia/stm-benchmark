@@ -98,6 +98,8 @@ Various benchmark suites are also available:
   - Lee-TM:
     - Lee's algorithm, parallelized with STM
     - previously used to measure STMs implemented for C and Ruby
+--
+  - We've also used Lee's algorithm...
 
 ---
 
@@ -131,7 +133,7 @@ Solve one route:
 .left-column[
 Solve the whole board:
 
-1. solve all routes; either<br />one-by-one, or in parallel
+1. solve all routes; either<br />one-by-one, or in parallel<br />(solve 1 route – 1 transaction)
 ]
 
 .right-column[<center><img src="lee_algorithm.png" width="45%" /></center>]
@@ -192,7 +194,7 @@ Experimental setup:
 # Observations
 
 - STM engines with purely _functional_ APIs tend to be slower than<br />ones with _imperative_ APIs
-  - GC pressure
+  - GC (garbage collector) pressure
   - interpretation overhead
 - The Kotlin STM engine (arrow-fx-stm) beats most of the Scala ones
   - runs on Kotlin coroutines (vs. Scala fibers)
@@ -217,12 +219,36 @@ count: false
 
 # Thank you!
 
-# Questions?
-
-
 .smaller-font-size[
 Benchmark code is open source at: https://github.com/nokia/stm-benchmark
 ]
+
+# Questions?
+
+---
+
+class: center, middle
+count: false
+
+# Extra slides
+
+---
+
+count: false
+
+# Early release
+
+- An STM engine typically "logs" memory locations read and written
+  - "read set" and "write set"
+- _Early release_  is a mechanism to remove items from the read set of a transaction
+  - i.e., releasing those memory locations _earlier_ than the commit of the transaction
+- Good: reduces transaction conflicts
+- Can be bad: the released memory locations won't be checked for consistency when committing
+  - i.e., early release is another way of weakening consistency for improving performance
+
+
+
+
 
 
     </textarea>
