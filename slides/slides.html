@@ -235,6 +235,31 @@ count: false
 
 count: false
 
+# How does it look like?
+
+Imperative API (example):
+
+```scala
+  def incrBoth(a: Ref[Int], b: Ref[Int]) = atomic { implicit txn =>
+    a.set(a.get + 1)
+    b.set(b.get + 1)
+  }
+```
+
+Functional API (example):
+
+```scala
+  def incrBoth(a: Ref[Int], b: Ref[Int]) = {
+    a.update(x => x + 1) *> b.update(x => x + 1)
+  }
+
+  incrBoth(a, b).run
+```
+
+---
+
+count: false
+
 # Opacity
 
 - A consistency property specifically for STM systems
