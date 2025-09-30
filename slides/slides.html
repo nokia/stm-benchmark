@@ -66,8 +66,8 @@ ICSEA 2025, Lisbon, Portugal<br />
 - *Memory:*
   - works on objects/pointers in main memory (RAM)
 - *Software:*
-  - implemented in software
-  - (so it's not, e.g., a special hardware)
+  - implemented in software (e.g., in the compiler or as a library)
+  - (so it's _not_, e.g., special hardware)
 --
 
 ## Why is it useful?
@@ -83,7 +83,7 @@ High level approach to concurrency and parallelism, without
 
 ---
 
-# Benchmarking STMs
+# Benchmarking STM engines
 
 STM is a general approach to concurrency/parallelism
 - various algorithms and implementation strategies exist
@@ -149,12 +149,11 @@ Good for benchmarking STM, because:
 
 - Benchmarked STM implementations on the JVM (Java Virtual Machine)
 - Selected various STM engines for functional programming languages:
-  - Scala: Cats STM, CHOAM, Kyo STM, ScalaSTM, ZSTM
-  - Kotlin: arrow-fx-stm
+  - 5 Scala: Cats STM, CHOAM, Kyo STM, ScalaSTM, ZSTM
+  - 1 Kotlin: arrow-fx-stm
 - Implemented Lee's algorithm with all of these
 - Additionally (where applicable) implemented some variants:
-  - optimization by weakened consistency (lack of _opacity_)
-  - optimization with _early release_
+  - optimization by weakened consistency (lack of _opacity_; _early release_)
   - functional API wrapper of an imperative STM API (ScalaSTM)
 --
 
@@ -231,6 +230,22 @@ class: center, middle
 count: false
 
 # Extra slides
+
+---
+
+count: false
+
+# Opacity
+
+- A consistency property specifically for STM systems
+- Guarantees that _any_ transaction _always_ sees a consistent view of memory
+- Even if it will later abort/retry
+
+With no opacity, a transaction can observe inconsistent states (and then later abort/retry)
+
+- This can be used for optimizations
+  - non-opaque reads are typically cheaper
+- But can be dangerous
 
 ---
 
