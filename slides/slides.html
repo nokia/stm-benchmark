@@ -60,14 +60,11 @@ ICSEA 2025, Lisbon, Portugal<br />
 
 ## What is it?
 
-- *Transactional:*
-  - like database transactions
+- *Transactional:* like database transactions
   - ACI of "ACID" (atomicity, consistency, isolation)
-- *Memory:*
-  - works on objects/pointers in main memory (RAM)
-- *Software:*
-  - implemented in software (e.g., in the compiler or as a library)
-  - (so it's _not_, e.g., special hardware)
+- *Memory:* works on objects/pointers in main memory (RAM)
+- *Software:* implemented in software
+  - e.g., in the compiler, or as a library
 --
 
 ## Why is it useful?
@@ -79,7 +76,13 @@ High level approach to concurrency and parallelism, without
   arbitrary logic), and the reads/writes appear to take effect
   atomically (on commit)
 - i.e., we get thread safety, but it's easier to use than using locks directly
-  - e.g., because the STM engine takes care of deadlock avoidance
+
+```scala
+  def incrementBoth(a: Ref[Int], b: Ref[Int]) = atomic { implicit txn =>
+    a.set(a.get + 1)
+    b.set(b.get + 1)
+  }
+```
 
 ---
 
@@ -235,12 +238,12 @@ count: false
 
 count: false
 
-# How does it look like?
+# Imperative vs. Functional STM APIs
 
 Imperative API (example):
 
 ```scala
-  def incrBoth(a: Ref[Int], b: Ref[Int]) = atomic { implicit txn =>
+  def incrementBoth(a: Ref[Int], b: Ref[Int]) = atomic { implicit txn =>
     a.set(a.get + 1)
     b.set(b.get + 1)
   }
@@ -249,11 +252,11 @@ Imperative API (example):
 Functional API (example):
 
 ```scala
-  def incrBoth(a: Ref[Int], b: Ref[Int]) = {
+  def incrementBoth(a: Ref[Int], b: Ref[Int]) = {
     a.update(x => x + 1) *> b.update(x => x + 1)
   }
 
-  incrBoth(a, b).run
+  incrementBoth(a, b).run
 ```
 
 ---
