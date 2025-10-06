@@ -6,8 +6,6 @@
 
 -->
 
-Slides: [src](https://github.com/nokia/stm-benchmark/blob/slides/slides/slides.html)|[html](https://html-preview.github.io/?url=https://github.com/nokia/stm-benchmark/blob/slides/slides/slides.html)
-
 # STM benchmarks
 
 *Benchmarks for software transactional memory (STM) implementations on the JVM*
