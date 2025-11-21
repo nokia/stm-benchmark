@@ -68,7 +68,7 @@ object ErtRxnSolver {
             _ <- debug(s"Solution:\n" + board.debugSolution(Map(route -> solutionList), debug = log))
             _ <- lay(route, depth, solution, tickets)
           } yield solutionList
-          ar.applyAsync(act, runConfig)
+          ar.runAsync(act, runConfig)
         }
 
         def expand(depth: RefMatrix[Int], route: Route): Rxn[(RefMatrix[Int], Map[Ref[Int], Ticket[Int]])] = {

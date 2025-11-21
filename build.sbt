@@ -267,10 +267,10 @@ lazy val dependencies = new {
   val catsVersion = "2.13.0"
   val catsEffectVersion = "3.7.0-RC1"
   val catsStmVersion = "0.13.5"
-  val zioVersion = "2.1.20"
+  val zioVersion = "2.1.22"
   val kyoVersion = "1.0-RC1"
-  val choamVersion = "0.5.0-RC3"
-  val fs2Version = "3.13.0-M6"
+  val choamVersion = "0.5.0-RC5"
+  val fs2Version = "3.13.0-M7"
   val kindProjectorVersion = "0.13.3"
   val betterMonadicForVersion = "0.3.1"
   val jmhVersion = "1.37"
@@ -287,8 +287,8 @@ lazy val dependencies = new {
       catsEffectAll.value,
       "org.typelevel" %%% "cats-effect-kernel-testkit" % catsEffectVersion,
       catsEffectTestkit.value,
-      "org.scalameta" %%% "munit" % "1.1.1",
-      "org.typelevel" %%% "munit-cats-effect" % "2.1.0",
+      "org.scalameta" %%% "munit" % "1.2.1",
+      "org.typelevel" %%% "munit-cats-effect" % "2.2.0-RC1",
     )
   }
 

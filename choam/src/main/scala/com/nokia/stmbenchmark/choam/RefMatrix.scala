@@ -36,7 +36,7 @@ sealed abstract class RefMatrix[A] {
   }
 
   def debugF[F[_]](debug: Boolean)(implicit s: Show[A], F: Reactive[F]): F[String] = {
-    F.apply(this.debug(debug))
+    F.run(this.debug(debug))
   }
 
   final def unsafeDebug(debug: Boolean)(implicit s: Show[A], txn: InRxn): String = {
