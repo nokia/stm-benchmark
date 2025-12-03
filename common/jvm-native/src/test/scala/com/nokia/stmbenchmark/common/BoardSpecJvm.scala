@@ -25,15 +25,15 @@ final class BoardSpecJvm extends CatsEffectSuite {
     }
 
     IO.parSequenceN(4)(List(
-      tst("four_crosses.txt"),
-      tst("mainboard.txt"),
-      tst("memboard.txt"),
-      tst("minimal.txt"),
-      tst("sparselong_mini.txt"),
-      tst("sparselong.txt"),
-      tst("sparseshort_mini.txt"),
-      tst("sparseshort.txt"),
-      tst("testBoard.txt"),
+      tst("/four_crosses.txt"),
+      tst("/mainboard.txt"),
+      tst("/memboard.txt"),
+      tst("/minimal.txt"),
+      tst("/sparselong_mini.txt"),
+      tst("/sparselong.txt"),
+      tst("/sparseshort_mini.txt"),
+      tst("/sparseshort.txt"),
+      tst("/testBoard.txt"),
     ))
   }
 }

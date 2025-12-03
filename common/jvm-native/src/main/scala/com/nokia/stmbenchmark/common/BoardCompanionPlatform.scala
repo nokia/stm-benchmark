@@ -17,7 +17,7 @@ private[common] abstract class BoardCompanionPlatform {
   def fromStream[F[_]](s: Stream[F, String])(implicit cF: Concurrent[F]): F[Board]
 
   def fromResource[F[_]](path: String)(implicit sF: Sync[F], cF: Concurrent[F]): F[Board] = {
-    val stream = fs2.io.readClassLoaderResource(path, classLoader = classOf[Board].getClassLoader()).through(text.utf8.decode)
+    val stream = fs2.io.readClassResource[F, Board](path).through(text.utf8.decode)
     fromStream(stream)
   }
 }

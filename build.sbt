@@ -33,7 +33,7 @@ lazy val stmBenchmark = project.in(file("."))
     kyoStm
   )
 
-lazy val common = crossProject(JVMPlatform, JSPlatform)
+lazy val common = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .withoutSuffixFor(JVMPlatform)
   .in(file("common"))
@@ -41,6 +41,7 @@ lazy val common = crossProject(JVMPlatform, JSPlatform)
   .settings(commonSettings)
   .jvmSettings(commonSettingsJvm)
   .jsSettings(commonSettingsJs)
+  .nativeSettings(commonSettingsNative)
   .settings(libraryDependencies ++= Seq(
     dependencies.fs2.value,
     dependencies.catsEffectStd.value,
@@ -171,6 +172,22 @@ lazy val commonSettingsJvm = Seq[Setting[_]](
 )
 
 lazy val commonSettingsJs = Seq[Setting[_]](
+)
+
+lazy val commonSettingsNative = Seq[Setting[_]](
+  nativeConfig ~= { config =>
+    config
+      .withMultithreading(true)
+      .withSourceLevelDebuggingConfig(_.enableAll)
+      .withCompileOptions(_ ++ Seq(
+        "-DGC_ASSERTIONS",
+      ))
+      .withEmbedResources(true)
+      .withResourceIncludePatterns(Seq("**.txt")) // board files
+  },
+  envVars ++= Map(
+    "GC_MAXIMUM_HEAP_SIZE" -> "5G",
+  ),
 )
 
 lazy val commonSettings = Seq[Setting[_]](
