@@ -20,9 +20,12 @@ final class SequentialSolverSpec extends JvmCeIoSolverSpec {
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
-  testFromResource("sparseshort.txt", restrict = 1)
+  testFromResource("sparseshort.txt", restrict = if (isJvm) 1 else 2)
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt", restrict = 2)
-  testFromResource("memboard.txt", restrict = 2)
+  testFromResource("sparselong.txt", restrict = if (isJvm) 0 else 1)
+
+  if (isJvm) { // TODO: SN: too big boards(?)
+    testFromResource("mainboard.txt", restrict = 2)
+    testFromResource("memboard.txt", restrict = 2)
+  }
 }

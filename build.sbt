@@ -24,7 +24,7 @@ lazy val stmBenchmark = project.in(file("."))
   .aggregate(
     common.jvm, common.js, common.native,
     benchmarks,
-    sequential,
+    sequential.jvm, sequential.native,
     catsStm,
     zstm,
     choam,
@@ -63,7 +63,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
       dependencies.catsEffectAll.value,
     ),
   )
-  .dependsOn(sequential)
+  .dependsOn(sequential.jvm)
   .dependsOn(catsStm)
   .dependsOn(zstm)
   .dependsOn(choam)
@@ -72,12 +72,16 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .dependsOn(kyoStm)
   .enablePlugins(JmhPlugin)
 
-lazy val sequential = project.in(file("sequential"))
+lazy val sequential = crossProject(JVMPlatform, NativePlatform)
+  .crossType(CrossType.Full)
+  .withoutSuffixFor(JVMPlatform)
+  .in(file("sequential"))
   .settings(name := "stm-benchmark-sequential")
   .settings(commonSettings)
-  .settings(commonSettingsJvm)
+  .jvmSettings(commonSettingsJvm)
+  .nativeSettings(commonSettingsNative)
   .settings(publishArtifact := false)
-  .dependsOn(common.jvm % "compile->compile;test->test")
+  .dependsOn(common % "compile->compile;test->test")
   .settings(libraryDependencies ++= Seq(
     dependencies.catsCore.value,
   ))

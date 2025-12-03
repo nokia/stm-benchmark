@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import munit.{ Tag, Location, TestOptions }
 
-trait MunitUtils { this: munit.FunSuite =>
+trait MunitUtils extends MunitUtilsPlatform { this: munit.FunSuite =>
 
   private[this] final case class ExpectedResult(
     maxDepth: Int,
