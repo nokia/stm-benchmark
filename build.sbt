@@ -22,7 +22,7 @@ lazy val stmBenchmark = project.in(file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false)
   .aggregate(
-    common.jvm, common.js,
+    common.jvm, common.js, common.native,
     benchmarks,
     sequential,
     catsStm,
