@@ -9,7 +9,6 @@ package choam
 
 import scala.annotation.unused
 
-import cats.syntax.all._
 import cats.effect.IO
 import cats.effect.kernel.Resource
 
@@ -39,7 +38,7 @@ final class ImpRxnSolverSpec extends RxnSolverSpecBase {
     ImpRxnSolver[IO](rt = rt, parLimit = numCpu, log = false, strategy = RxnSolver.sleepStrategy)
 }
 
-trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
+trait RxnSolverSpecBase extends JvmCeIoSolverSpec with RxnSolverSpecBasePlatform {
 
   protected[this] def mkSolver(rt: ChoamRuntime, numCpu: Int)(implicit ar: AsyncReactive[IO]): IO[Solver[IO]]
 
@@ -53,52 +52,20 @@ trait RxnSolverSpecBase extends JvmCeIoSolverSpec {
     }
   }
 
+
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))
   testFromResource("sparseshort_mini.txt")
   testFromResource("sparseshort.txt")
   testFromResource("sparselong_mini.txt")
-  testFromResource("sparselong.txt")
-  testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 10 mins
-  testFromResource("memboard.txt", restrict = 2) // unrestricted takes approx. 6 mins
+  testFromResource("sparselong.txt", restrict = if (isJvm) 0 else 3)
+
+  if (isJvm) { // TODO: SN: too big boards(?)
+    testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 10 mins
+    testFromResource("memboard.txt", restrict = 2) // unrestricted takes approx. 6 mins
+  }
 
   override def afterEach(context: AfterEach): Unit = {
     printJmxInfo()
-  }
-
-  private def printJmxInfo(): Unit = {
-    val mbs = java.lang.management.ManagementFactory.getPlatformMBeanServer()
-    val names = mbs.queryNames(
-      new javax.management.ObjectName("dev.tauri.choam.stats:type=EmcasJmxStats*"),
-      null
-    )
-
-    names.forEach { objName =>
-
-      def getAttr(attrName: String): Option[(String, AnyRef)] = {
-        Either
-          .catchOnly[javax.management.AttributeNotFoundException](mbs.getAttribute(objName, attrName))
-          .toOption
-          .map(attrName -> _)
-      }
-
-      val attrs = List(
-        "Commits",
-        "McasAttempts",
-        "CyclesDetected",
-        "AvgCyclesPerMcasAttempt",
-      ).sorted
-
-      for ((name, value) <- attrs.map(getAttr).collect { case Some(kv) => kv }) {
-        println(s"  ${name}: ${value}")
-      }
-
-      mbs.invoke(objName, "checkConsistency", Array.empty[AnyRef], Array.empty[String]) match {
-        case null =>
-          // OK
-        case errMsg =>
-          println(errMsg.toString)
-      }
-    }
   }
 }

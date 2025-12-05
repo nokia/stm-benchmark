@@ -27,7 +27,7 @@ lazy val stmBenchmark = project.in(file("."))
     sequential.jvm, sequential.native,
     catsStm,
     zstm,
-    choam,
+    choam.jvm, choam.native,
     scalaStm,
     arrowStm,
     kyoStm
@@ -66,7 +66,7 @@ lazy val benchmarks = project.in(file("benchmarks"))
   .dependsOn(sequential.jvm)
   .dependsOn(catsStm)
   .dependsOn(zstm)
-  .dependsOn(choam)
+  .dependsOn(choam.jvm)
   .dependsOn(scalaStm)
   .dependsOn(arrowStm)
   .dependsOn(kyoStm)
@@ -107,12 +107,16 @@ lazy val zstm = project.in(file("zstm"))
     dependencies.zioCats.value % Test,
   ))
 
-lazy val choam = project.in(file("choam"))
+lazy val choam = crossProject(JVMPlatform, NativePlatform)
+  .crossType(CrossType.Full)
+  .withoutSuffixFor(JVMPlatform)
+  .in(file("choam"))
   .settings(name := "stm-benchmark-choam")
   .settings(commonSettings)
-  .settings(commonSettingsJvm)
+  .jvmSettings(commonSettingsJvm)
+  .nativeSettings(commonSettingsNative)
   .settings(publishArtifact := false)
-  .dependsOn(common.jvm % "compile->compile;test->test")
+  .dependsOn(common % "compile->compile;test->test")
   .settings(
     libraryDependencies ++= Seq(
       dependencies.choam.value,
@@ -190,7 +194,8 @@ lazy val commonSettingsNative = Seq[Setting[_]](
       .withResourceIncludePatterns(Seq("**.txt")) // board files
   },
   envVars ++= Map(
-    "GC_MAXIMUM_HEAP_SIZE" -> "5G",
+    "GC_MAXIMUM_HEAP_SIZE" -> "8G",
+    "SCALANATIVE_TEST_DEBUG_SIGNALS" -> "1",
   ),
 )
 
