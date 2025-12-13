@@ -6,6 +6,7 @@
 
 package com.nokia.stmbenchmark
 package choam
+package rxn
 
 import dev.tauri.choam.ChoamRuntime
 import dev.tauri.choam.core.RetryStrategy

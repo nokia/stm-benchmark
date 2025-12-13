@@ -6,6 +6,7 @@
 
 package com.nokia.stmbenchmark
 package choam
+package rxn
 
 import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._

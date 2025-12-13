@@ -23,7 +23,7 @@ import org.openjdk.jmh.annotations._
 import common.{ Solver, Board }
 import catsstm.CatsStmSolver
 import zstm.ZstmSolver
-import choam.{ RxnSolver, ErRxnSolver, ErtRxnSolver, ImpRxnSolver }
+import choam.rxn.{ RxnSolver, ErRxnSolver, ErtRxnSolver, ImpRxnSolver }
 import scalastm.{ ScalaStmSolver, WrStmSolver }
 import sequential.SequentialSolver
 import arrowstm.{ KotlinInterop, ArrowStmSolver }

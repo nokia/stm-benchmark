@@ -6,6 +6,7 @@
 
 package com.nokia.stmbenchmark
 package choam
+package rxn
 
 trait RxnSolverSpecBasePlatform {
 

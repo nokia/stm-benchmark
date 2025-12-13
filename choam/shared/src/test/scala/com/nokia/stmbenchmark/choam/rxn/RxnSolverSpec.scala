@@ -6,6 +6,7 @@
 
 package com.nokia.stmbenchmark
 package choam
+package rxn
 
 import scala.annotation.unused
 
@@ -51,7 +52,6 @@ trait RxnSolverSpecBase extends JvmCeIoSolverSpec with RxnSolverSpecBasePlatform
       }
     }
   }
-
 
   testFromResource("four_crosses.txt".tag(Verbose))
   testFromResource("testBoard.txt".tag(Verbose))

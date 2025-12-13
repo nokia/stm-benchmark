@@ -6,6 +6,7 @@
 
 package com.nokia.stmbenchmark
 package choam
+package rxn
 
 import cats.data.{ Chain, NonEmptyChain }
 import cats.syntax.all._
@@ -17,19 +18,22 @@ import dev.tauri.choam.core.{ Rxn, AsyncReactive, RetryStrategy }
 
 import common.{ Solver, Board, Point, Route, BoolMatrix }
 
-/**
- * A solver using `Rxn` and early release ("ER") to
- * optimize (have less conflicts than) `RxnSolver`.
- */
-object ErRxnSolver {
+/** A solver using `Rxn` for parallelization */
+object RxnSolver {
 
-  // TODO: A lot of this code is duplicated with
-  // TODO: `RxnSolver`; pull out the common methods.
+  private[stmbenchmark] val spinStrategy: RetryStrategy.Spin =
+    RetryStrategy.Default
+
+  private[stmbenchmark] val cedeStrategy: RetryStrategy =
+    spinStrategy.withCede(true)
+
+  private[stmbenchmark] val sleepStrategy: RetryStrategy =
+    cedeStrategy.withSleep(true)
 
   def apply[F[_]](
     parLimit: Int,
     log: Boolean,
-    strategy: RetryStrategy = RxnSolver.spinStrategy,
+    strategy: RetryStrategy = spinStrategy,
   )(implicit F: Async[F], ar: AsyncReactive[F]): F[Solver[F]] = {
     val cons = Console.make[F]
     val debugStrategy = if (log) cons.println(strategy) else F.unit
@@ -84,8 +88,7 @@ object ErRxnSolver {
                         Rxn.pure(Chain.empty)
                       } else {
                         cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
-                          val ref = depth(adjacent.y, adjacent.x)
-                          Rxn.unsafe.tentativeRead(ref).flatMap { d =>
+                          depth(adjacent.y, adjacent.x).get.flatMap { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
                               cost(adjacent.y, adjacent.x).set(newCost).as(Chain(adjacent))
@@ -150,8 +153,7 @@ object ErRxnSolver {
 
         def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Rxn[Unit] = {
           solution.traverse_ { point =>
-            val ref = depth(point.y, point.x)
-            ref.update(_ + 1).as(ref)
+            depth(point.y, point.x).update(_ + 1)
           }
         }
 
