@@ -194,7 +194,7 @@ lazy val commonSettingsNative = Seq[Setting[_]](
       .withResourceIncludePatterns(Seq("**.txt")) // board files
   },
   envVars ++= Map(
-    "GC_MAXIMUM_HEAP_SIZE" -> "8G",
+    "GC_MAXIMUM_HEAP_SIZE" -> "9G",
     "SCALANATIVE_TEST_DEBUG_SIGNALS" -> "1",
   ),
 )
