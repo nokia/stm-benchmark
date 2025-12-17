@@ -92,7 +92,7 @@ object RefMatrix {
     final override def apply(row: Int, col: Int): Ref[A] = {
       require((row >= 0) && (row < height))
       require((col >= 0) && (col < width))
-      refArr.unsafeGet((row * width) + col)
+      refArr.unsafeApply((row * width) + col)
     }
   }
 }

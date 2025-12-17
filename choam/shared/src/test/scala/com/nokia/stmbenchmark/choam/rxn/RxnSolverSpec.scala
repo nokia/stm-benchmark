@@ -61,8 +61,8 @@ trait RxnSolverSpecBase extends JvmCeIoSolverSpec with RxnSolverSpecBasePlatform
   testFromResource("sparselong.txt", restrict = if (isJvm) 0 else 3)
 
   if (isJvm) { // TODO: SN: too big boards(?)
-    testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 10 mins
-    testFromResource("memboard.txt", restrict = 2) // unrestricted takes approx. 6 mins
+    testFromResource("mainboard.txt", restrict = 3) // unrestricted takes approx. 8 mins
+    testFromResource("memboard.txt", restrict = 2) // unrestricted takes approx. 4 mins
   }
 
   override def afterEach(context: AfterEach): Unit = {
