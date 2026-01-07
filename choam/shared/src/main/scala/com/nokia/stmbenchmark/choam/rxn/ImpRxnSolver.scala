@@ -10,7 +10,7 @@ package rxn
 
 import dev.tauri.choam.ChoamRuntime
 import dev.tauri.choam.core.RetryStrategy
-import dev.tauri.choam.unsafe.{ InRxn, RefSyntax, UnsafeApi, updateRef }
+import dev.tauri.choam.unsafe.{ InRxn, UnsafeApi, updateRef }
 
 import cats.syntax.traverse._
 import cats.effect.kernel.Async
@@ -67,7 +67,7 @@ object ImpRxnSolver {
             val endPoint = route.b
 
             val cost = RefMatrix.unsafeNew[Int](h = depth.height, w = depth.width, initial = 0)
-            cost(startPoint.y, startPoint.x).value = 1
+            cost(startPoint.y, startPoint.x) = 1
 
             var wavefront = List(startPoint)
 
@@ -75,15 +75,15 @@ object ImpRxnSolver {
             while (go) {
               val newWavefront = new scala.collection.mutable.ListBuffer[Point]()
               for (point <- wavefront) {
-                val pointCost = cost(point.y, point.x).value
+                val pointCost = cost(point.y, point.x)
                 for (adjacent <- board.adjacentPoints(point)) {
                   if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                     // can't go in that direction
                   } else {
-                    val currentCost = cost(adjacent.y, adjacent.x).value
-                    val newCost = pointCost + Board.cost(depth(adjacent.y, adjacent.x).value)
+                    val currentCost = cost(adjacent.y, adjacent.x)
+                    val newCost = pointCost + Board.cost(depth(adjacent.y, adjacent.x))
                     if ((currentCost == 0) || (newCost < currentCost)) {
-                      cost(adjacent.y, adjacent.x).value = newCost
+                      cost(adjacent.y, adjacent.x) = newCost
                       newWavefront += adjacent
                     } else {
                       // not better
@@ -95,9 +95,9 @@ object ImpRxnSolver {
               if (newWavefront.isEmpty) {
                 throw new Solver.Stuck
               } else {
-                val costAtRouteEnd = cost(endPoint.y, endPoint.x).value
+                val costAtRouteEnd = cost(endPoint.y, endPoint.x)
                 if (costAtRouteEnd > 0) {
-                  val newCosts = newWavefront.map { marked => cost(marked.y, marked.x).value }
+                  val newCosts = newWavefront.map { marked => cost(marked.y, marked.x) }
                   val minimumNewCost = newCosts.min
                   if (costAtRouteEnd < minimumNewCost) {
                     // no new location has lower cost than the
@@ -126,7 +126,7 @@ object ImpRxnSolver {
             while (solution.head != endPoint) {
               val adjacent = board.adjacentPoints(solution.head)
               val costs = adjacent.map { a =>
-                val aCost = cost(a.y, a.x).value
+                val aCost = cost(a.y, a.x)
                 (a, aCost)
               }
               val lowestCost = costs.filter(_._2 != 0).minBy(_._2) // TODO: simplify
@@ -138,7 +138,7 @@ object ImpRxnSolver {
 
           def lay(depth: RefMatrix[Int], solution: List[Point])(implicit txn: InRxn): Unit = {
             for (point <- solution) {
-              updateRef(depth(point.y, point.x))(_ + 1)
+              updateRef(depth.getRef(point.y, point.x))(_ + 1) // TODO: this is inefficient
             }
           }
 

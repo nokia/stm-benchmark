@@ -74,22 +74,22 @@ object ErRxnSolver {
           val endPoint = route.b
 
           RefMatrix[Int](depth.height, depth.width, 0).flatMap { cost =>
-            cost(startPoint.y, startPoint.x).set(1).flatMap { _ =>
+            cost.set(startPoint.y, startPoint.x, 1).flatMap { _ =>
 
               def go(wavefront: Chain[Point]): Rxn[Chain[Point]] = {
                 val mkNewWf = wavefront.traverse { point =>
-                  cost(point.y, point.x).get.flatMap { pointCost =>
+                  cost.get(point.y, point.x).flatMap { pointCost =>
                     Chain.fromSeq(board.adjacentPoints(point)).traverse { adjacent =>
                       if (obstructed(adjacent.y, adjacent.x) && (adjacent != endPoint)) {
                         // can't go in that direction
                         Rxn.pure(Chain.empty)
                       } else {
-                        cost(adjacent.y, adjacent.x).get.flatMap { currentCost =>
-                          val ref = depth(adjacent.y, adjacent.x)
+                        cost.get(adjacent.y, adjacent.x).flatMap { currentCost =>
+                          val ref = depth.getRef(adjacent.y, adjacent.x) // TODO: this is inefficient
                           Rxn.unsafe.tentativeRead(ref).flatMap { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
-                              cost(adjacent.y, adjacent.x).set(newCost).as(Chain(adjacent))
+                              cost.set(adjacent.y, adjacent.x, newCost).as(Chain(adjacent))
                             } else {
                               Rxn.pure(Chain.empty)
                             }
@@ -104,10 +104,10 @@ object ErRxnSolver {
                   if (newWavefront.isEmpty) {
                     Rxn.unsafe.panic(new Solver.Stuck)
                   } else {
-                    cost(endPoint.y, endPoint.x).get.flatMap { costAtRouteEnd =>
+                    cost.get(endPoint.y, endPoint.x).flatMap { costAtRouteEnd =>
                       if (costAtRouteEnd > 0) {
                         newWavefront.traverse { marked =>
-                          cost(marked.y, marked.x).get
+                          cost.get(marked.y, marked.x)
                         }.flatMap { newCosts =>
                           val minimumNewCost = newCosts.minimumOption.get // TODO: partial function
                           if (costAtRouteEnd < minimumNewCost) {
@@ -141,7 +141,7 @@ object ErRxnSolver {
           Rxn.monadInstance.iterateWhileM(NonEmptyChain(startPoint)) { solution =>
             val adjacent = board.adjacentPoints(solution.head)
             adjacent.traverse { a =>
-              cost(a.y, a.x).get.map(a -> _)
+              cost.get(a.y, a.x).map(a -> _)
             }.map { costs =>
               val lowestCost = costs.filter(_._2 != 0).minBy(_._2)
               lowestCost._1 +: solution
@@ -151,8 +151,7 @@ object ErRxnSolver {
 
         def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Rxn[Unit] = {
           solution.traverse_ { point =>
-            val ref = depth(point.y, point.x)
-            ref.update(_ + 1).as(ref)
+            depth.update(point.y, point.x, _ + 1)
           }
         }
 

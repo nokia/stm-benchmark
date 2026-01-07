@@ -45,14 +45,11 @@ sealed abstract class TMatrix[A] {
 
 object TMatrix {
 
-  private[this] val allocStr =
-    TArray.DefaultAllocationStrategy
-
   def apply[A](h: Int, w: Int, initial: A): Txn[TMatrix[A]] = {
     require(h >= 0)
     require(w >= 0)
     val len = h * w
-    TArray(len, initial, allocStr).map { tArr =>
+    TArray(len, initial).map { tArr =>
       new TMatrixImpl[A](h, w, tArr)
     }
   }

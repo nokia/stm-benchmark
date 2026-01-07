@@ -20,14 +20,23 @@ sealed abstract class RefMatrix[A] {
 
   val width: Int
 
-  def apply(row: Int, col: Int): Ref[A]
+  def getRef(row: Int, col: Int): Ref[A]
+
+  def get(row: Int, col: Int): Rxn[A]
+
+  def set(row: Int, col: Int, nv: A): Rxn[Unit]
+
+  def update(row: Int, col: Int, f: A => A): Rxn[Unit]
+
+  def apply(row: Int, col: Int)(implicit ir: InRxn): A
+
+  def update(row: Int, col: Int, nv: A)(implicit ir: InRxn): Unit
 
   def debug(debug: Boolean)(implicit s: Show[A]): Rxn[String] = {
     if (debug) {
       val act: Rxn[List[List[A]]] = (0 until height).toList.traverse { row =>
         (0 until width).toList.traverse { col =>
-          val ref = apply(row, col)
-          ref.get
+          get(row, col)
         }
       }
       act.map(_.map(_.map(s.show).mkString(", ")).mkString("\n"))
@@ -41,13 +50,12 @@ sealed abstract class RefMatrix[A] {
   }
 
   final def unsafeDebug(debug: Boolean)(implicit s: Show[A], txn: InRxn): String = {
-    import dev.tauri.choam.unsafe.RefSyntax
     if (debug) {
       val llb = List.newBuilder[List[String]]
       for (row <- (0 until height)) {
         val lb = List.newBuilder[String]
         for (col <- (0 until width)) {
-          lb += s.show(this(row, col).value)
+          lb += s.show(this(row, col))
         }
         llb += lb.result()
       }
@@ -89,10 +97,31 @@ object RefMatrix {
     final override val width: Int =
       w
 
-    final override def apply(row: Int, col: Int): Ref[A] = {
-      require((row >= 0) && (row < height))
-      require((col >= 0) && (col < width))
-      refArr.unsafeApply((row * width) + col)
+    final override def get(row: Int, col: Int): Rxn[A] = {
+      refArr.unsafeGet((row * width) + col)
+    }
+
+    final override def set(row: Int, col: Int, nv: A): Rxn[Unit] = {
+      refArr.unsafeSet((row * width) + col, nv)
+    }
+
+    final override def update(row: Int, col: Int, f: A => A): Rxn[Unit] = {
+      refArr.unsafeUpdate((row * width) + col, f)
+    }
+
+    final override def getRef(row: Int, col: Int): Ref[A] = {
+      // TODO: this is inefficient:
+      refArr.refs.get((row * width) + col).getOrElse(throw new IllegalArgumentException)
+    }
+
+    final override def apply(row: Int, col: Int)(implicit ir: InRxn): A = {
+      import dev.tauri.choam.unsafe.RefArraySyntax
+      refArr((row * width) + col)
+    }
+
+    final override def update(row: Int, col: Int, nv: A)(implicit ir: InRxn): Unit = {
+      import dev.tauri.choam.unsafe.RefArraySyntax
+      refArr((row * width) + col) = nv
     }
   }
 }
