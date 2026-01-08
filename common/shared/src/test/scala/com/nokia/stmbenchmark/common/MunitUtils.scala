@@ -13,10 +13,7 @@ import munit.{ Tag, Location, TestOptions }
 
 trait MunitUtils extends MunitUtilsPlatform { this: munit.FunSuite =>
 
-  private[this] final case class ExpectedResult(
-    maxDepth: Int,
-    totalCost: Int,
-  )
+  import MunitUtils.ExpectedResult
 
   protected val DontCare = -2
 
@@ -132,4 +129,12 @@ trait MunitUtils extends MunitUtilsPlatform { this: munit.FunSuite =>
         fail(s"Not found totalCost for ${testOpts.name} (restrict = ${board.restricted})")
     }
   }
+}
+
+object MunitUtils {
+
+  private final case class ExpectedResult(
+    maxDepth: Int,
+    totalCost: Int,
+  )
 }

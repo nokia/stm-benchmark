@@ -111,7 +111,7 @@ object RefMatrix {
 
     final override def getRef(row: Int, col: Int): Ref[A] = {
       // TODO: this is inefficient:
-      refArr.refs.get((row * width) + col).getOrElse(throw new IllegalArgumentException)
+      refArr.refs.get(((row * width) + col).toLong).getOrElse(throw new IllegalArgumentException)
     }
 
     final override def apply(row: Int, col: Int)(implicit ir: InRxn): A = {

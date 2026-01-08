@@ -5,7 +5,7 @@
  */
 
 // Scala versions:
-val scala2 = "2.13.17"
+val scala2 = "2.13.18"
 val scala3 = "3.7.4"
 
 val TestInternal = "test-internal"
@@ -297,7 +297,7 @@ lazy val dependencies = new {
   val kyoVersion = "1.0-RC1"
   val choamVersion = "0.5.0-RC6"
   val fs2Version = "3.13.0-M8"
-  val kindProjectorVersion = "0.13.3"
+  val kindProjectorVersion = "0.13.4"
   val betterMonadicForVersion = "0.3.1"
   val jmhVersion = "1.37"
 
