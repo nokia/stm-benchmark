@@ -141,7 +141,7 @@ object TxnSolver {
 
         def lay(depth: TMatrix[Int], solution: NonEmptyChain[Point]): Txn[Unit] = {
           solution.traverse_ { point =>
-            depth.update(point.y, point.x, _ + 1)
+            depth.update(point.y, point.x)(_ + 1)
           }
         }
 

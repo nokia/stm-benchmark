@@ -10,7 +10,7 @@ package rxn
 
 import dev.tauri.choam.ChoamRuntime
 import dev.tauri.choam.core.RetryStrategy
-import dev.tauri.choam.unsafe.{ InRxn, UnsafeApi, updateRef }
+import dev.tauri.choam.unsafe.{ InRxn, UnsafeApi }
 
 import cats.syntax.traverse._
 import cats.effect.kernel.Async
@@ -138,7 +138,7 @@ object ImpRxnSolver {
 
           def lay(depth: RefMatrix[Int], solution: List[Point])(implicit txn: InRxn): Unit = {
             for (point <- solution) {
-              updateRef(depth.getRef(point.y, point.x))(_ + 1) // TODO: this is inefficient
+              depth.impUpdate(point.y, point.x)(_ + 1)
             }
           }
 

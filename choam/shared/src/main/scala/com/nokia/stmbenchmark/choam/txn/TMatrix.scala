@@ -23,7 +23,7 @@ sealed abstract class TMatrix[A] {
 
   def set(row: Int, col: Int, a: A): Txn[Unit]
 
-  def update(row: Int, col: Int, f: A => A): Txn[Unit]
+  def update(row: Int, col: Int)(f: A => A): Txn[Unit]
 
   final def debug(debug: Boolean)(implicit s: Show[A]): Txn[String] = {
     if (debug) {
@@ -68,7 +68,7 @@ object TMatrix {
     final override def set(row: Int, col: Int, a: A): Txn[Unit] =
       tArr.unsafeSet((row * width) + col, a)
 
-    final override def update(row: Int, col: Int, f: A => A): Txn[Unit] =
-      tArr.unsafeUpdate((row * width) + col, f)
+    final override def update(row: Int, col: Int)(f: A => A): Txn[Unit] =
+      tArr.unsafeUpdate((row * width) + col)(f)
   }
 }

@@ -85,8 +85,7 @@ object ErRxnSolver {
                         Rxn.pure(Chain.empty)
                       } else {
                         cost.get(adjacent.y, adjacent.x).flatMap { currentCost =>
-                          val ref = depth.getRef(adjacent.y, adjacent.x) // TODO: this is inefficient
-                          Rxn.unsafe.tentativeRead(ref).flatMap { d =>
+                          depth.tentativeRead(adjacent.y, adjacent.x).flatMap { d =>
                             val newCost = pointCost + Board.cost(d)
                             if ((currentCost == 0) || (newCost < currentCost)) {
                               cost.set(adjacent.y, adjacent.x, newCost).as(Chain(adjacent))
@@ -151,7 +150,7 @@ object ErRxnSolver {
 
         def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Rxn[Unit] = {
           solution.traverse_ { point =>
-            depth.update(point.y, point.x, _ + 1)
+            depth.update(point.y, point.x)(_ + 1)
           }
         }
 

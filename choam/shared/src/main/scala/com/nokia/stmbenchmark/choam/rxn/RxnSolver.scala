@@ -153,7 +153,7 @@ object RxnSolver {
 
         def lay(depth: RefMatrix[Int], solution: NonEmptyChain[Point]): Rxn[Unit] = {
           solution.traverse_ { point =>
-            depth.update(point.y, point.x, _ + 1)
+            depth.update(point.y, point.x)(_ + 1)
           }
         }
 

@@ -20,13 +20,17 @@ sealed abstract class RefMatrix[A] {
 
   val width: Int
 
-  def getRef(row: Int, col: Int): Ref[A]
-
   def get(row: Int, col: Int): Rxn[A]
+
+  def tentativeRead(row: Int, col: Int): Rxn[A]
+
+  def ticketRead(row: Int, col: Int): Rxn[Rxn.unsafe.Ticket[A]]
 
   def set(row: Int, col: Int, nv: A): Rxn[Unit]
 
-  def update(row: Int, col: Int, f: A => A): Rxn[Unit]
+  def update(row: Int, col: Int)(f: A => A): Rxn[Unit]
+
+  def impUpdate(row: Int, col: Int)(f: A => A)(implicit ir: InRxn): Unit
 
   def apply(row: Int, col: Int)(implicit ir: InRxn): A
 
@@ -101,17 +105,20 @@ object RefMatrix {
       refArr.unsafeGet((row * width) + col)
     }
 
+    final override def tentativeRead(row: Int, col: Int): Rxn[A] = {
+      Rxn.unsafe.tentativeReadArray(refArr, (row * width) + col)
+    }
+
+    final override def ticketRead(row: Int, col: Int): Rxn[Rxn.unsafe.Ticket[A]] = {
+      Rxn.unsafe.ticketReadArray(refArr, (row * width) + col)
+    }
+
     final override def set(row: Int, col: Int, nv: A): Rxn[Unit] = {
       refArr.unsafeSet((row * width) + col, nv)
     }
 
-    final override def update(row: Int, col: Int, f: A => A): Rxn[Unit] = {
-      refArr.unsafeUpdate((row * width) + col, f)
-    }
-
-    final override def getRef(row: Int, col: Int): Ref[A] = {
-      // TODO: this is inefficient:
-      refArr.refs.get(((row * width) + col).toLong).getOrElse(throw new IllegalArgumentException)
+    final override def update(row: Int, col: Int)(f: A => A): Rxn[Unit] = {
+      refArr.unsafeUpdate((row * width) + col)(f)
     }
 
     final override def apply(row: Int, col: Int)(implicit ir: InRxn): A = {
@@ -122,6 +129,10 @@ object RefMatrix {
     final override def update(row: Int, col: Int, nv: A)(implicit ir: InRxn): Unit = {
       import dev.tauri.choam.unsafe.RefArraySyntax
       refArr((row * width) + col) = nv
+    }
+
+    final override def impUpdate(row: Int, col: Int)(f: A => A)(implicit ir: InRxn): Unit = {
+      dev.tauri.choam.unsafe.updateRefArray(refArr, (row * width) + col)(f)
     }
   }
 }
